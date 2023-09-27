@@ -1,54 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:test/components/menu_list.dart';
-import 'package:test/screens/menu_gi.dart';
-import 'package:test/screens/menu_gr.dart';
-import 'package:test/screens/menu_takephoto.dart';
-import 'package:test/screens/menu_transfer.dart';
-import 'package:test/screens/stock_overview.dart';
-import 'package:test/screens/before.dart';
+import 'package:test/components/menu_list2.dart';
+import 'package:test/screens/menu1.dart';
 
 class Menu extends StatefulWidget {
+  static String routeName = "/menu";
   @override
   _MenuPageState createState() => _MenuPageState();
 }
 
 class _MenuPageState extends State<Menu> {
-  bool grVisible = false;
-  bool giVisible = false;
-  bool transferVisible = false;
-  bool stockVisible = false;
-  bool takephotoVisible = false;
-  String showMenu = '';
+  bool containerVisible = true;
 
   @override
   void initState() {
     super.initState();
-    getSharedPrefs();
-  }
-
-  Future<void> getSharedPrefs() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      showMenu = prefs.getString('showMenu');
-    });
-    if (showMenu == 'Show All Menu') {
-      setState(() {
-        grVisible = true;
-        giVisible = true;
-        transferVisible = true;
-        stockVisible = true;
-        takephotoVisible = true;
-      });
-    } else {
-      setState(() {
-        grVisible = false;
-        giVisible = false;
-        transferVisible = false;
-        stockVisible = false;
-        takephotoVisible = true;
-      });
-    }
   }
 
   @override
@@ -58,7 +23,7 @@ class _MenuPageState extends State<Menu> {
         constraints: BoxConstraints.expand(),
         decoration: BoxDecoration(
             image: new DecorationImage(
-          image: new AssetImage("assets/Background.jpg"),
+          image: new AssetImage("assets/hmc_background6.jpeg"),
           fit: BoxFit.cover,
           colorFilter: ColorFilter.mode(
               Colors.white.withOpacity(0.5), BlendMode.dstATop),
@@ -70,81 +35,32 @@ class _MenuPageState extends State<Menu> {
             children: [
               SizedBox(height: 10),
               Visibility(
-                visible: grVisible,
-                child: MenuList(
-                  text: "GR",
-                  icon: Icon(
-                    Icons.flight_land_rounded,
-                    size: 40,
-                    color: Colors.blue,
+                visible: containerVisible,
+                child: MenuList2(
+                  text: "Check Sheet",
+                  imageIcon: Image.asset(
+                    "assets/checksheet.gif",
+                    width: 65,
+                    height: 55,
                   ),
                   press: () => {
                     Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => MenuGR()))
+                        MaterialPageRoute(builder: (context) => Menu1()))
                   },
                 ),
               ),
               Visibility(
-                visible: giVisible,
-                child: MenuList(
-                  text: "GI",
-                  icon: Icon(
-                    Icons.flight_takeoff_rounded,
-                    size: 40,
-                    color: Colors.blue,
-                  ),
-                  press: () => {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => MenuGI()))
-                  },
-                ),
-              ),
-              Visibility(
-                visible: transferVisible,
-                child: MenuList(
-                  text: "Transfer",
-                  icon: Icon(
-                    Icons.swap_horiz_outlined,
-                    size: 40,
-                    color: Colors.blue,
-                  ),
-                  press: () => {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => MenuTransfer()))
-                  },
-                ),
-              ),
-              Visibility(
-                visible: stockVisible,
-                child: MenuList(
-                  text: "Stock",
-                  icon: Icon(
-                    Icons.shopping_cart_rounded,
-                    size: 40,
-                    color: Colors.blue,
-                  ),
-                  press: () => {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => StockOverviewPage()))
-                  },
-                ),
-              ),
-              Visibility(
-                visible: takephotoVisible,
-                child: MenuList(
+                visible: containerVisible,
+                child: MenuList2(
                   text: "Take Photo",
-                  icon: Icon(
-                    Icons.camera_alt_rounded,
-                    size: 40,
-                    color: Colors.blue,
+                  imageIcon: Image.asset(
+                    "assets/takephoto.gif",
+                    width: 65,
+                    height: 55,
                   ),
                   press: () => {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => MenuTakePhoto()))
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) => Menu1()))
                   },
                 ),
               ),

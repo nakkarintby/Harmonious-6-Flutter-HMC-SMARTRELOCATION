@@ -89,21 +89,15 @@ flutter:
     - assets/SMC_logo.png
     - assets/SMC_logo_splash.png
     - assets/Background.jpg
-    - assets/top1.png
-    - assets/top2.png
-    - assets/hms1.png
-    - assets/hms2.png
-    - assets/hms3.png
-    - assets/bottom1.png
-    - assets/bottom2.png
     - assets/men_wearing_jacket.gif
-    - assets/fruit1.jpg
-    - assets/fruit2.jpg
-    - assets/cartoon1.jpg 
-    - assets/cartoon2.png
-    - assets/water1.jpg
-    - assets/water2.jpg
-    - assets/profile.jpg
+    - assets/logout.gif
+    - assets/username.gif
+    - assets/password.gif
+    - assets/shms1.png
+    - assets/hmc_logo.png
+    - assets/hmc_background6.jpeg
+    - assets/checksheet.gif
+    - assets/takephoto.gif
 
     
   # An image asset can refer to one or more resolution-specific "variants", see

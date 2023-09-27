@@ -1,21 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:test/components/setting_menu.dart';
-import 'package:test/components/setting_pic.dart';
 import 'package:giffy_dialog/giffy_dialog.dart';
-import 'package:flutter_session/flutter_session.dart';
+import 'package:test/components/menu_list2.dart';
 import 'package:test/screens/login.dart';
-import 'package:test/screens/my_account.dart';
 
 class Setting extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    Future<void> logoutSession() async {
-      await FlutterSession().set('token', '');
-      await FlutterSession().set('token_userid', '');
-      await FlutterSession().set('token_username', '');
-      await FlutterSession().set('token_role', '');
-    }
-
     void logoutDialog() {
       showDialog(
           context: context,
@@ -35,9 +25,8 @@ class Setting extends StatelessWidget {
               ),
               entryAnimation: EntryAnimation.RIGHT,
               onOkButtonPressed: () {
-                logoutSession();
-                Navigator.of(context, rootNavigator: true)
-                    .pushReplacementNamed(Login.routeName);
+                Navigator.of(context, rootNavigator: true).pushReplacement(
+                    MaterialPageRoute(builder: (context) => Login()));
               },
               onCancelButtonPressed: () {
                 Navigator.of(context, rootNavigator: true).pop();
@@ -50,7 +39,7 @@ class Setting extends StatelessWidget {
         constraints: BoxConstraints.expand(),
         decoration: BoxDecoration(
             image: new DecorationImage(
-          image: new AssetImage("assets/Background.jpg"),
+          image: new AssetImage("assets/hmc_background6.jpeg"),
           fit: BoxFit.cover,
           colorFilter: ColorFilter.mode(
               Colors.white.withOpacity(0.5), BlendMode.dstATop),
@@ -60,58 +49,15 @@ class Setting extends StatelessWidget {
           padding: EdgeInsets.symmetric(vertical: 50),
           child: Column(
             children: [
-              /*SettingPic(),
-            SizedBox(height: 20),
-            SettingMenu(
-              text: "My Account",
-              icon: Icon(
-                Icons.person_rounded,
-                size: 40,
-                color: Colors.blue,
-              ),
-              press: () => {
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => MyAccount()))
-              },
-            ),
-            SettingMenu(
-              text: "Notifications",
-              icon: Icon(
-                Icons.notifications_rounded,
-                size: 40,
-                color: Colors.blue,
-              ),
-              press: () {},
-            ),
-            SettingMenu(
-              text: "Settings",
-              icon: Icon(
-                Icons.settings_rounded,
-                size: 40,
-                color: Colors.blue,
-              ),
-              press: () {},
-            ),
-            SettingMenu(
-              text: "Help Center",
-              icon: Icon(
-                Icons.help_center_rounded,
-                size: 40,
-                color: Colors.blue,
-              ),
-              press: () {},
-            ),*/
-              SettingMenu(
+              MenuList2(
                 text: "Log Out",
-                icon: Icon(
-                  Icons.logout_rounded,
-                  size: 40,
-                  color: Colors.blue,
+                imageIcon: Image.asset(
+                  "assets/logout.gif",
+                  width: 65,
+                  height: 55,
                 ),
-                press: () {
-                  logoutDialog();
-                },
-              ),
+                press: () => {logoutDialog()},
+              )
             ],
           ),
         ),

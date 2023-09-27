@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:test/screens/home.dart';
 import 'package:test/screens/menu.dart';
 import 'package:test/screens/setting.dart';
 
@@ -13,7 +12,6 @@ class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
 
   List<GlobalKey<NavigatorState>> _navigatorKeys = [
-    //GlobalKey<NavigatorState>(),
     GlobalKey<NavigatorState>(),
     GlobalKey<NavigatorState>(),
   ];
@@ -35,26 +33,13 @@ class _MainScreenState extends State<MainScreen> {
           showSelectedLabels: false,
           showUnselectedLabels: false,
           items: [
-            /*BottomNavigationBarItem(
-              icon: Icon(
-                Icons.home_outlined,
-                size: 40,
-                color: Colors.grey,
-              ),
-              title: new Text('HOME'),
-              activeIcon: Icon(
-                Icons.home_rounded,
-                size: 40,
-                color: Colors.blue,
-              ),
-            ),*/
             BottomNavigationBarItem(
               icon: Icon(
                 Icons.menu_outlined,
                 size: 25,
                 color: Colors.grey,
               ),
-              title: Text('MENU'),
+              label: 'MENU',
               activeIcon: Icon(
                 Icons.menu_rounded,
                 size: 25,
@@ -67,7 +52,7 @@ class _MainScreenState extends State<MainScreen> {
                 size: 25,
                 color: Colors.grey,
               ),
-              title: Text('SETTING'),
+              label: 'SETTING',
               activeIcon: Icon(
                 Icons.settings_rounded,
                 size: 25,
@@ -83,7 +68,6 @@ class _MainScreenState extends State<MainScreen> {
         ),
         body: Stack(
           children: [
-            //_buildOffstageNavigator(0),
             _buildOffstageNavigator(0),
             _buildOffstageNavigator(1),
           ],
@@ -96,7 +80,6 @@ class _MainScreenState extends State<MainScreen> {
     return {
       '/': (context) {
         return [
-          //Home(),
           Menu(),
           Setting(),
         ].elementAt(index);
