@@ -39,7 +39,7 @@ class Setting extends StatelessWidget {
         constraints: BoxConstraints.expand(),
         decoration: BoxDecoration(
             image: new DecorationImage(
-          image: new AssetImage("assets/hmc_background6.jpeg"),
+          image: new AssetImage("assets/background.jpg"),
           fit: BoxFit.cover,
           colorFilter: ColorFilter.mode(
               Colors.white.withOpacity(0.5), BlendMode.dstATop),
@@ -52,7 +52,7 @@ class Setting extends StatelessWidget {
               MenuList2(
                 text: "Log Out",
                 imageIcon: Image.asset(
-                  "assets/logout.gif",
+                  "assets/logout.png",
                   width: 65,
                   height: 55,
                 ),

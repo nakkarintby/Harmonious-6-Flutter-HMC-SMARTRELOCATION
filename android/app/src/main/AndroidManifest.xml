@@ -21,7 +21,7 @@
     </intent>
     </queries>
    <application
-        android:label="SMC"
+        android:label="SMART"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

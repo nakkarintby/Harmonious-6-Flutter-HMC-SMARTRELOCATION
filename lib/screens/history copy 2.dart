@@ -43,33 +43,21 @@ class _HistoryState extends State<History> {
     });*/
     setState(() {
       test.binId = 1;
-      test.lot = 'TP058901';
-      test.weight = 750;
+      test.lot = 'label1';
+      test.weight = 123;
       test2.binId = 2;
-      test2.lot = 'TC0457184';
-      test2.weight = 1250;
+      test2.lot = 'label2';
+      test2.weight = 456;
       test3.binId = 3;
-      test3.lot = 'TS487198';
-      test3.weight = 550;
+      test3.lot = 'label3';
+      test3.weight = 789;
       test4.binId = 4;
-      test4.lot = 'CP894141';
-      test4.weight = 380;
+      test4.lot = 'label4';
+      test4.weight = 999;
       list.add(test);
       list.add(test2);
-      list.add(test);
-      list.add(test2);
-      list.add(test);
-      list.add(test2);
-      list.add(test);
-      list.add(test2);
-      list.add(test);
-      list.add(test2);
-      list.add(test);
-      list.add(test2);
-      list.add(test);
-      list.add(test2);
-      list.add(test);
-      list.add(test2);
+      list.add(test3);
+      list.add(test4);
     });
   }
 
@@ -88,14 +76,21 @@ class _HistoryState extends State<History> {
     return [
       DataColumn(
           label: Expanded(
-              child: (Text('Pallet No.',
+              child: (Text('No',
                   softWrap: true,
                   textAlign: TextAlign.start,
                   style: TextStyle(
                       fontWeight: FontWeight.bold, color: Colors.black))))),
       DataColumn(
           label: Expanded(
-              child: Text('Qty',
+              child: Text('Detail',
+                  softWrap: true,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold, color: Colors.black)))),
+      DataColumn(
+          label: Expanded(
+              child: Text('Result',
                   softWrap: true,
                   textAlign: TextAlign.center,
                   style: TextStyle(
@@ -113,26 +108,36 @@ class _HistoryState extends State<History> {
                 }),
                 cells: [
                   DataCell(Container(
-                      width: 160, //SET width
+                      width: 100, //SET width
                       child: Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
-                            list.lot.toString(),
+                            list.binId.toString(),
                             textAlign: TextAlign.start,
+                          )))),
+                  DataCell(Container(
+                      width: 160, //SET width
+                      child: Align(
+                          alignment: Alignment.center,
+                          child: Text(
+                            list.lot!,
+                            textAlign: TextAlign.center,
                           )))),
                   DataCell(
                     list.binId! % 2 == 0
                         ? Align(
                             alignment: Alignment.center,
-                            child: Text(
-                              list.weight.toString(),
-                              textAlign: TextAlign.start,
+                            child: Icon(
+                              Icons.check,
+                              color: Colors.green,
+                              size: 30.0,
                             ))
                         : Align(
                             alignment: Alignment.center,
-                            child: Text(
-                              list.weight.toString(),
-                              textAlign: TextAlign.start,
+                            child: Icon(
+                              Icons.close,
+                              color: Colors.red,
+                              size: 30.0,
                             )),
                   ),
                 ]))
@@ -157,30 +162,13 @@ class _HistoryState extends State<History> {
             scrollDirection: Axis.vertical,
             child: Column(children: [
               SizedBox(height: 25),
-              Center(
-                  child: Container(
+              Container(
                 decoration:
                     BoxDecoration(border: Border.all(color: Colors.black)),
-                height: MediaQuery.of(context).size.height / 1.55,
                 child: SingleChildScrollView(
                     child: Column(children: [
                   _createDataTable(),
                 ])),
-              )),
-              SizedBox(height: 25),
-              Container(
-                width: 100.0,
-                height: 45.0,
-                child: new RaisedButton(
-                  color: Colors.red,
-                  child: const Text('Back',
-                      style: TextStyle(
-                        color: Colors.white,
-                      )),
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                ),
               ),
             ])));
   }

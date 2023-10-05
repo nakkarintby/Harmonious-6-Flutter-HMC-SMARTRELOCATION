@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:test/components/menu_list2.dart';
+import 'package:test/screens/goods_received.dart';
 import 'package:test/screens/menu1.dart';
 
 class Menu extends StatefulWidget {
@@ -23,7 +24,7 @@ class _MenuPageState extends State<Menu> {
         constraints: BoxConstraints.expand(),
         decoration: BoxDecoration(
             image: new DecorationImage(
-          image: new AssetImage("assets/hmc_background6.jpeg"),
+          image: new AssetImage("assets/background.jpg"),
           fit: BoxFit.cover,
           colorFilter: ColorFilter.mode(
               Colors.white.withOpacity(0.5), BlendMode.dstATop),
@@ -37,9 +38,24 @@ class _MenuPageState extends State<Menu> {
               Visibility(
                 visible: containerVisible,
                 child: MenuList2(
-                  text: "Check Sheet",
+                  text: "GI",
                   imageIcon: Image.asset(
-                    "assets/checksheet.gif",
+                    "assets/gi.png",
+                    width: 65,
+                    height: 55,
+                  ),
+                  press: () => {
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) => GoodReceived()))
+                  },
+                ),
+              ),
+              Visibility(
+                visible: containerVisible,
+                child: MenuList2(
+                  text: "Cancle GI",
+                  imageIcon: Image.asset(
+                    "assets/cancelgi.png",
                     width: 65,
                     height: 55,
                   ),
@@ -52,9 +68,9 @@ class _MenuPageState extends State<Menu> {
               Visibility(
                 visible: containerVisible,
                 child: MenuList2(
-                  text: "Take Photo",
+                  text: "Re-Print",
                   imageIcon: Image.asset(
-                    "assets/takephoto.gif",
+                    "assets/canclesticker.png",
                     width: 65,
                     height: 55,
                   ),
