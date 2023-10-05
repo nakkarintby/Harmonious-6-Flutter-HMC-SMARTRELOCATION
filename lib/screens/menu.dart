@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:test/components/menu_list2.dart';
-import 'package:test/screens/goods_received.dart';
-import 'package:test/screens/menu1.dart';
+import 'package:test/screens/cancle_good_issue.dart';
+import 'package:test/screens/good_issue.dart';
+import 'package:test/screens/reprint.dart';
 
 class Menu extends StatefulWidget {
   static String routeName = "/menu";
@@ -46,7 +47,7 @@ class _MenuPageState extends State<Menu> {
                   ),
                   press: () => {
                     Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => GoodReceived()))
+                        MaterialPageRoute(builder: (context) => GoodIssue()))
                   },
                 ),
               ),
@@ -60,8 +61,10 @@ class _MenuPageState extends State<Menu> {
                     height: 55,
                   ),
                   press: () => {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => Menu1()))
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => CancleGoodIssue()))
                   },
                 ),
               ),
@@ -76,7 +79,7 @@ class _MenuPageState extends State<Menu> {
                   ),
                   press: () => {
                     Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => Menu1()))
+                        MaterialPageRoute(builder: (context) => Reprint()))
                   },
                 ),
               ),

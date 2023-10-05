@@ -16,62 +16,53 @@ import 'package:input_with_keyboard_control/input_with_keyboard_control.dart';
 import 'package:progress_dialog/progress_dialog.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 
-class GoodReceived extends StatefulWidget {
-  const GoodReceived({Key? key}) : super(key: key);
+class CancleGoodIssue extends StatefulWidget {
+  const CancleGoodIssue({Key? key}) : super(key: key);
 
   @override
-  _GoodReceivedState createState() => _GoodReceivedState();
+  _CancleGoodIssueState createState() => _CancleGoodIssueState();
 }
 
-class _GoodReceivedState extends State<GoodReceived> {
+class _CancleGoodIssueState extends State<CancleGoodIssue> {
   final _formKey = GlobalKey<FormState>();
-  TextEditingController documentNumberController = TextEditingController();
+
   TextEditingController matNumberController = TextEditingController();
   TextEditingController matDescController = TextEditingController();
   TextEditingController lotController = TextEditingController();
   TextEditingController palletnumberController = TextEditingController();
-  TextEditingController orderQtyController = TextEditingController();
-  TextEditingController remainQtyController = TextEditingController();
   TextEditingController packingQtyController = TextEditingController();
+  TextEditingController documentNumberController = TextEditingController();
 
-  bool documentNumberVisible = false;
   bool matNumberVisible = false;
   bool detailVisible = false;
   bool buttonVisible = false;
 
-  bool documentNumberReadonly = false;
   bool matNumberReadonly = false;
   bool matDescReadonly = false;
   bool lotReadonly = false;
   bool palletnumberReadonly = false;
-  bool orderQtyReadonly = false;
-  bool remainQtyReadonly = false;
   bool packingQtyReadonly = false;
+  bool documentNumberReadonly = false;
 
-  Color documentNumberColor = Color(0xFFFFFFFF);
   Color matNumberColor = Color(0xFFFFFFFF);
   Color matDescColor = Color(0xFFFFFFFF);
   Color lotColor = Color(0xFFFFFFFF);
   Color palletnumberColor = Color(0xFFFFFFFF);
-  Color orderQtyColor = Color(0xFFFFFFFF);
-  Color remainQtyColor = Color(0xFFFFFFFF);
   Color packingQtyColor = Color(0xFFFFFFFF);
+  Color documentNumberColor = Color(0xFFFFFFFF);
 
   bool backEnabled = false;
-  bool historyEnabled = false;
   bool submitEnabled = false;
 
-  String documentNumberInput = '';
   String matNumberInput = '';
   String matDescInput = '';
   String lotInput = '';
   String palletnumberInput = '';
-  String orderQtyInput = '';
-  String remainQtyInput = '';
   String packingQtyInput = '';
+  String documentNumberInput = '';
 
   int step = 1;
-  late List<FocusNode> focusNodes = List.generate(3, (index) => FocusNode());
+  late List<FocusNode> focusNodes = List.generate(2, (index) => FocusNode());
   late Timer timer;
 
   String configs = '';
@@ -122,21 +113,12 @@ class _GoodReceivedState extends State<GoodReceived> {
   void setVisible() {
     if (step == 1) {
       setState(() {
-        documentNumberVisible = true;
-        matNumberVisible = false;
+        matNumberVisible = true;
         detailVisible = false;
         buttonVisible = false;
       });
     } else if (step == 2) {
       setState(() {
-        documentNumberVisible = true;
-        matNumberVisible = true;
-        detailVisible = false;
-        buttonVisible = true;
-      });
-    } else if (step == 3) {
-      setState(() {
-        documentNumberVisible = true;
         matNumberVisible = true;
         detailVisible = true;
         buttonVisible = true;
@@ -147,47 +129,26 @@ class _GoodReceivedState extends State<GoodReceived> {
   void setReadOnly() {
     if (step == 1) {
       setState(() {
-        documentNumberReadonly = false;
         matNumberReadonly = false;
         matDescReadonly = false;
         lotReadonly = false;
         palletnumberReadonly = false;
-        orderQtyReadonly = false;
-        remainQtyReadonly = false;
         packingQtyReadonly = false;
+        documentNumberReadonly = false;
 
         backEnabled = false;
-        historyEnabled = false;
         submitEnabled = false;
       });
     } else if (step == 2) {
       setState(() {
-        documentNumberReadonly = true;
-        matNumberReadonly = false;
-        matDescReadonly = false;
-        lotReadonly = false;
-        palletnumberReadonly = false;
-        orderQtyReadonly = false;
-        remainQtyReadonly = false;
-        packingQtyReadonly = false;
-
-        backEnabled = true;
-        historyEnabled = true;
-        submitEnabled = false;
-      });
-    } else if (step == 3) {
-      setState(() {
-        documentNumberReadonly = true;
         matNumberReadonly = true;
         matDescReadonly = true;
         lotReadonly = true;
         palletnumberReadonly = true;
-        orderQtyReadonly = true;
-        remainQtyReadonly = true;
         packingQtyReadonly = true;
+        documentNumberReadonly = true;
 
         backEnabled = true;
-        historyEnabled = true;
         submitEnabled = true;
       });
     }
@@ -196,36 +157,21 @@ class _GoodReceivedState extends State<GoodReceived> {
   void setColor() {
     if (step == 1) {
       setState(() {
-        documentNumberColor = Color(0xFFFFFFFF);
         matNumberColor = Color(0xFFFFFFFF);
         matDescColor = Color(0xFFFFFFFF);
         lotColor = Color(0xFFFFFFFF);
         palletnumberColor = Color(0xFFFFFFFF);
-        orderQtyColor = Color(0xFFFFFFFF);
-        remainQtyColor = Color(0xFFFFFFFF);
         packingQtyColor = Color(0xFFFFFFFF);
+        documentNumberColor = Color(0xFFFFFFFF);
       });
     } else if (step == 2) {
       setState(() {
-        documentNumberColor = Color(0xFFEEEEEE);
-        matNumberColor = Color(0xFFFFFFFF);
-        matDescColor = Color(0xFFFFFFFF);
-        lotColor = Color(0xFFFFFFFF);
-        palletnumberColor = Color(0xFFFFFFFF);
-        orderQtyColor = Color(0xFFFFFFFF);
-        remainQtyColor = Color(0xFFFFFFFF);
-        packingQtyColor = Color(0xFFFFFFFF);
-      });
-    } else if (step == 3) {
-      setState(() {
-        documentNumberColor = Color(0xFFEEEEEE);
         matNumberColor = Color(0xFFEEEEEE);
         matDescColor = Color(0xFFEEEEEE);
         lotColor = Color(0xFFEEEEEE);
         palletnumberColor = Color(0xFFEEEEEE);
-        orderQtyColor = Color(0xFFEEEEEE);
-        remainQtyColor = Color(0xFFEEEEEE);
         packingQtyColor = Color(0xFFEEEEEE);
+        documentNumberColor = Color(0xFFEEEEEE);
       });
     }
   }
@@ -233,36 +179,21 @@ class _GoodReceivedState extends State<GoodReceived> {
   void setText() {
     if (step == 1) {
       setState(() {
-        documentNumberController.text = '';
         matNumberController.text = '';
         matDescController.text = '';
         lotController.text = '';
         palletnumberController.text = '';
-        orderQtyController.text = '';
-        remainQtyController.text = '';
         packingQtyController.text = '';
+        documentNumberController.text = '';
       });
     } else if (step == 2) {
       setState(() {
-        documentNumberController.text = documentNumberInput;
-        matNumberController.text = '';
-        matDescController.text = '';
-        lotController.text = '';
-        palletnumberController.text = '';
-        orderQtyController.text = '';
-        remainQtyController.text = '';
-        packingQtyController.text = '';
-      });
-    } else if (step == 3) {
-      setState(() {
-        documentNumberController.text = documentNumberInput;
         matNumberController.text = matNumberInput;
         matDescController.text = matDescInput;
         lotController.text = lotInput;
         palletnumberController.text = palletnumberInput;
-        orderQtyController.text = orderQtyInput;
-        remainQtyController.text = remainQtyInput;
         packingQtyController.text = packingQtyInput;
+        documentNumberController.text = documentNumberInput;
       });
     }
   }
@@ -274,9 +205,6 @@ class _GoodReceivedState extends State<GoodReceived> {
     } else if (step == 2) {
       Future.delayed(Duration(milliseconds: 100))
           .then((_) => FocusScope.of(context).requestFocus(focusNodes[1]));
-    } else if (step == 3) {
-      Future.delayed(Duration(milliseconds: 100))
-          .then((_) => FocusScope.of(context).requestFocus(focusNodes[2]));
     }
   }
 
@@ -347,22 +275,12 @@ class _GoodReceivedState extends State<GoodReceived> {
 
     if (step == 1) {
       setState(() {
-        documentNumberController.text = barcodeScanRes;
+        matNumberController.text = barcodeScanRes;
       });
-      documentNumberCheck();
+      matNumberCheck();
+    } else {
+      return;
     }
-  }
-
-  Future<void> documentNumberCheck() async {
-    setState(() {
-      step++;
-      documentNumberInput = documentNumberController.text;
-    });
-    setVisible();
-    setReadOnly();
-    setColor();
-    setText();
-    setFocus();
   }
 
   Future<void> matNumberCheck() async {
@@ -372,20 +290,14 @@ class _GoodReceivedState extends State<GoodReceived> {
       matDescInput = '1';
       lotInput = '2';
       palletnumberInput = '3';
-      orderQtyInput = '4';
-      remainQtyInput = '5';
       packingQtyInput = '6';
+      documentNumberInput = '218';
     });
     setVisible();
     setReadOnly();
     setColor();
     setText();
     setFocus();
-  }
-
-  Future<void> setHistoryDocid() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString('historydocid', documentNumberInput);
   }
 
   @override
@@ -396,7 +308,7 @@ class _GoodReceivedState extends State<GoodReceived> {
           leading: BackButton(color: Colors.black),
           backgroundColor: Colors.white,
           title: Text(
-            'GI',
+            'Cancle GI',
             maxLines: 3,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(color: Colors.black, fontSize: 18),
@@ -418,37 +330,7 @@ class _GoodReceivedState extends State<GoodReceived> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               SizedBox(
-                height: 24,
-              ),
-              Container(
-                  padding: new EdgeInsets.only(
-                      left: MediaQuery.of(context).size.width / 5,
-                      right: MediaQuery.of(context).size.width / 5),
-                  child: Visibility(
-                      visible: documentNumberVisible,
-                      child: TextFormField(
-                        focusNode: focusNodes[0],
-                        readOnly: documentNumberReadonly,
-                        textInputAction: TextInputAction.go,
-                        style: TextStyle(fontSize: 13),
-                        onFieldSubmitted: (value) {
-                          documentNumberCheck();
-                        },
-                        decoration: InputDecoration(
-                          //icon: const Icon(Icons.person),
-                          fillColor: documentNumberColor,
-                          filled: true,
-                          hintText: 'Enter Document No.',
-                          labelText: 'Document Number',
-                          labelStyle: TextStyle(fontSize: 13),
-                          border: OutlineInputBorder(),
-                          isDense: true, // Added this
-                          contentPadding: EdgeInsets.all(14), //
-                        ),
-                        controller: documentNumberController,
-                      ))),
-              SizedBox(
-                height: 14,
+                height: 36,
               ),
               Container(
                   padding: new EdgeInsets.only(
@@ -457,7 +339,7 @@ class _GoodReceivedState extends State<GoodReceived> {
                   child: Visibility(
                       visible: matNumberVisible,
                       child: TextFormField(
-                        focusNode: focusNodes[1],
+                        focusNode: focusNodes[0],
                         readOnly: matNumberReadonly,
                         textInputAction: TextInputAction.go,
                         style: TextStyle(fontSize: 13),
@@ -473,12 +355,12 @@ class _GoodReceivedState extends State<GoodReceived> {
                           labelStyle: TextStyle(fontSize: 13),
                           border: OutlineInputBorder(),
                           isDense: true, // Added this
-                          contentPadding: EdgeInsets.all(14), //
+                          contentPadding: EdgeInsets.all(18), //
                         ),
                         controller: matNumberController,
                       ))),
               SizedBox(
-                height: 14,
+                height: 18,
               ),
               Container(
                   padding: new EdgeInsets.only(
@@ -501,12 +383,12 @@ class _GoodReceivedState extends State<GoodReceived> {
                           labelStyle: TextStyle(fontSize: 13),
                           border: OutlineInputBorder(),
                           isDense: true, // Added this
-                          contentPadding: EdgeInsets.all(14), //
+                          contentPadding: EdgeInsets.all(18), //
                         ),
                         controller: matDescController,
                       ))),
               SizedBox(
-                height: 14,
+                height: 18,
               ),
               Container(
                   padding: new EdgeInsets.only(
@@ -529,12 +411,12 @@ class _GoodReceivedState extends State<GoodReceived> {
                           labelStyle: TextStyle(fontSize: 13),
                           border: OutlineInputBorder(),
                           isDense: true, // Added this
-                          contentPadding: EdgeInsets.all(14), //
+                          contentPadding: EdgeInsets.all(18), //
                         ),
                         controller: lotController,
                       ))),
               SizedBox(
-                height: 14,
+                height: 18,
               ),
               Container(
                   padding: new EdgeInsets.only(
@@ -557,68 +439,12 @@ class _GoodReceivedState extends State<GoodReceived> {
                           labelStyle: TextStyle(fontSize: 13),
                           border: OutlineInputBorder(),
                           isDense: true, // Added this
-                          contentPadding: EdgeInsets.all(14), //
+                          contentPadding: EdgeInsets.all(18), //
                         ),
                         controller: palletnumberController,
                       ))),
               SizedBox(
-                height: 14,
-              ),
-              Container(
-                  padding: new EdgeInsets.only(
-                      left: MediaQuery.of(context).size.width / 5,
-                      right: MediaQuery.of(context).size.width / 5),
-                  child: Visibility(
-                      visible: detailVisible,
-                      child: TextFormField(
-                        //focusNode: focusNodes[0],
-                        readOnly: orderQtyReadonly,
-                        textInputAction: TextInputAction.go,
-                        style: TextStyle(fontSize: 13),
-                        onFieldSubmitted: (value) {},
-                        decoration: InputDecoration(
-                          //icon: const Icon(Icons.person),
-                          fillColor: orderQtyColor,
-                          filled: true,
-                          hintText: 'Enter Order Qty',
-                          labelText: 'Order Qty',
-                          labelStyle: TextStyle(fontSize: 13),
-                          border: OutlineInputBorder(),
-                          isDense: true, // Added this
-                          contentPadding: EdgeInsets.all(14), //
-                        ),
-                        controller: orderQtyController,
-                      ))),
-              SizedBox(
-                height: 14,
-              ),
-              Container(
-                  padding: new EdgeInsets.only(
-                      left: MediaQuery.of(context).size.width / 5,
-                      right: MediaQuery.of(context).size.width / 5),
-                  child: Visibility(
-                      visible: detailVisible,
-                      child: TextFormField(
-                        //focusNode: focusNodes[0],
-                        readOnly: remainQtyReadonly,
-                        textInputAction: TextInputAction.go,
-                        style: TextStyle(fontSize: 13),
-                        onFieldSubmitted: (value) {},
-                        decoration: InputDecoration(
-                          //icon: const Icon(Icons.person),
-                          fillColor: remainQtyColor,
-                          filled: true,
-                          hintText: 'Enter Remain Qty',
-                          labelText: 'Remain Qty',
-                          labelStyle: TextStyle(fontSize: 13),
-                          border: OutlineInputBorder(),
-                          isDense: true, // Added this
-                          contentPadding: EdgeInsets.all(14), //
-                        ),
-                        controller: remainQtyController,
-                      ))),
-              SizedBox(
-                height: 14,
+                height: 18,
               ),
               Container(
                   padding: new EdgeInsets.only(
@@ -641,12 +467,40 @@ class _GoodReceivedState extends State<GoodReceived> {
                           labelStyle: TextStyle(fontSize: 13),
                           border: OutlineInputBorder(),
                           isDense: true, // Added this
-                          contentPadding: EdgeInsets.all(14), //
+                          contentPadding: EdgeInsets.all(18), //
                         ),
                         controller: packingQtyController,
                       ))),
               SizedBox(
-                height: 14,
+                height: 18,
+              ),
+              Container(
+                  padding: new EdgeInsets.only(
+                      left: MediaQuery.of(context).size.width / 5,
+                      right: MediaQuery.of(context).size.width / 5),
+                  child: Visibility(
+                      visible: detailVisible,
+                      child: TextFormField(
+                        //focusNode: focusNodes[0],
+                        readOnly: documentNumberReadonly,
+                        textInputAction: TextInputAction.go,
+                        style: TextStyle(fontSize: 13),
+                        onFieldSubmitted: (value) {},
+                        decoration: InputDecoration(
+                          //icon: const Icon(Icons.person),
+                          fillColor: documentNumberColor,
+                          filled: true,
+                          hintText: 'Enter Document No.',
+                          labelText: 'Document Number',
+                          labelStyle: TextStyle(fontSize: 13),
+                          border: OutlineInputBorder(),
+                          isDense: true, // Added this
+                          contentPadding: EdgeInsets.all(18), //
+                        ),
+                        controller: documentNumberController,
+                      ))),
+              SizedBox(
+                height: 18,
               ),
               Visibility(
                   visible: buttonVisible,
@@ -671,32 +525,15 @@ class _GoodReceivedState extends State<GoodReceived> {
                                 : null,
                           ),
                         ),
-                        Container(
-                          width: 70.0,
-                          height: 40.0,
-                          child: new RaisedButton(
-                            color: Colors.red,
-                            child: const Text('History',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                )),
-                            onPressed: historyEnabled
-                                ? () async {
-                                    await setHistoryDocid();
-                                    Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (context) => History()));
-                                  }
-                                : null,
-                          ),
+                        SizedBox(
+                          width: MediaQuery.of(context).size.width / 8,
                         ),
                         Container(
                           width: 70.0,
                           height: 40.0,
                           child: new RaisedButton(
-                            focusNode: focusNodes[2],
-                            color: step == 3 ? Colors.green : Colors.blue,
+                            focusNode: focusNodes[1],
+                            color: step == 2 ? Colors.green : Colors.blue,
                             child: const Text('Submit',
                                 style: TextStyle(
                                   color: Colors.white,
