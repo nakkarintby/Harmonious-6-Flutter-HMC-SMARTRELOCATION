@@ -51,7 +51,7 @@ dependencies:
   url_launcher: ^6.0.0
   url_launcher_web: ^2.0.6
   device_info_plus: ^0.7.2
-  
+  crypto: ^3.0.1
 
 flutter_native_splash:
   image: assets/hmc_logo.png

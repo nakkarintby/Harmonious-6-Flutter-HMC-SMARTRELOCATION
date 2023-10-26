@@ -1,10 +1,13 @@
 import 'dart:async';
-
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:progress_dialog/progress_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:test/class/resultlogin.dart';
 import 'package:test/screens/main_screen.dart';
 import 'package:rounded_loading_button/rounded_loading_button.dart';
+import 'dart:async';
+import 'package:http/http.dart' as http;
 
 class Login extends StatefulWidget {
   static String routeName = "/login";
@@ -20,7 +23,7 @@ class _LoginState extends State<Login> {
   TextEditingController configsController = TextEditingController();
   final RoundedLoadingButtonController _btnController =
       RoundedLoadingButtonController();
-  String configs = 'hmcsmart.harmonious.co.th';
+  String configs = 'selene.hms-cloud.com:8882';
   String version = '1.0';
   String urlDownload = '';
   late Timer timer;
@@ -30,7 +33,7 @@ class _LoginState extends State<Login> {
     super.initState();
     setState(() {
       version = '1.0';
-      configs = 'hmcsmart.harmonious.co.th';
+      configs = 'selene.hms-cloud.com:8882';
     });
     setSharedPrefs();
   }
@@ -42,7 +45,7 @@ class _LoginState extends State<Login> {
     if ((checkConfigsPrefs)) {
       configs = prefs.getString('configs')!;
     } else {
-      await prefs.setString('configs', 'hmcsmart.harmonious.co.th');
+      await prefs.setString('configs', 'selene.hms-cloud.com:8882');
       configs = prefs.getString('configs')!;
     }
   }
@@ -357,8 +360,60 @@ class _LoginState extends State<Login> {
   }
 
   Future<void> checkLogin() async {
-    Navigator.pushReplacement(
-        context, MaterialPageRoute(builder: (context) => MainScreen()));
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+
+      if (prefs.getString('configs') != null) {
+        configs = prefs.getString('configs')!;
+      }
+      var url = Uri.parse('http://' +
+          configs +
+          '/API/api/User/Login?username=U001&password=password1');
+      var headers = {'Content-Type': 'application/json'};
+      //var jsonBody = jsonEncode(userDataLogin);
+      final encoding = Encoding.getByName('utf-8');
+
+      http.Response response = await http.post(
+        url,
+        headers: headers,
+        //body: jsonBody,
+        encoding: encoding,
+      );
+      var data = json.decode(response.body);
+
+      if (response.statusCode == 200) {
+        late ResultLogin result;
+        setState(() {
+          result = ResultLogin.fromJson(data);
+        });
+
+        await prefs.setString('token', result.accessToken!);
+        await prefs.setString('username', result.user!.username);
+        setState(() {
+          usernameController.text = '';
+          passwordController.text = '';
+          _btnController.reset();
+        });
+        Navigator.pushReplacement(
+            context, MaterialPageRoute(builder: (context) => MainScreen()));
+      } else {
+        await prefs.setString('token', '');
+        await prefs.setString('username', '');
+        setState(() {
+          usernameController.text = '';
+          passwordController.text = '';
+          _btnController.reset();
+        });
+        showErrorDialog('Username or Password Invalid.');
+      }
+    } catch (e) {
+      setState(() {
+        usernameController.text = '';
+        passwordController.text = '';
+        _btnController.reset();
+      });
+      showErrorDialog('Error occured while checkLogin');
+    }
   }
 
   @override

@@ -3,18 +3,15 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:test/class/resvalidatedocument.dart';
-import 'package:test/class/resvalidatelocation.dart';
-import 'package:test/class/resvalidatepalletitem.dart';
-import 'package:flutter_session/flutter_session.dart';
-import 'package:test/constants.dart';
-import 'package:test/mywidget.dart';
+import 'package:test/class/resultSelectChkLoadedFull.dart';
+import 'package:test/class/resultdogi.dart';
 import 'package:test/screens/history.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:flutter/services.dart';
 import 'package:input_with_keyboard_control/input_with_keyboard_control.dart';
 import 'package:progress_dialog/progress_dialog.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:crypto/crypto.dart';
 
 class GoodIssue extends StatefulWidget {
   const GoodIssue({Key? key}) : super(key: key);
@@ -76,6 +73,23 @@ class _GoodIssueState extends State<GoodIssue> {
 
   String configs = '';
   String deviceInfo = '';
+  String accessToken = '';
+  String username = '';
+
+  late ResultDOGI result = ResultDOGI();
+  late ResultSelectChkLoadedFull resultChkLoadedFull =
+      ResultSelectChkLoadedFull();
+
+  var desc = '';
+  var batch = '';
+  var palletno = '';
+  var weight = '';
+  var bagType = '';
+  var qtyLoaded = 0;
+  var orderQty = 0;
+  var remainQty = 0;
+  var pickingQty = 0;
+  var plandate = '';
 
   @override
   void initState() {
@@ -116,6 +130,7 @@ class _GoodIssueState extends State<GoodIssue> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       configs = prefs.getString('configs');
+      accessToken = prefs.getString('token');
     });
   }
 
@@ -360,11 +375,70 @@ class _GoodIssueState extends State<GoodIssue> {
     }
   }
 
+  /*var dataToHash = 'password1';
+    var bytesToHash = utf8.encode(dataToHash);
+    var digest = sha1.convert(bytesToHash);
+    print('Data to hash: $dataToHash');
+    print('SHA-1: $digest');*/
+
   Future<void> documentNumberCheck() async {
     setState(() {
-      step++;
-      documentNumberInput = documentNumberController.text;
+      documentNumberController.text = '5730941|2021-08-08';
     });
+    var split = documentNumberController.text.split('|');
+
+    if (split.length != 2 || split[0].length > 10) {
+      setState(() {
+        documentNumberController.text = '';
+      });
+      showErrorDialog('Data Invalid');
+    } else {
+      try {
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        if (prefs.getString('configs') != null) {
+          configs = prefs.getString('configs')!;
+        }
+        accessToken = prefs.getString('token')!;
+
+        var url = Uri.parse('http://' +
+            configs +
+            '/API/api/DeliveryOrder/DOValidate/' +
+            split[0] +
+            '/' +
+            split[1]);
+
+        var headers = {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          "Authorization": "Bearer " + accessToken
+        };
+
+        http.Response response = await http.get(url, headers: headers);
+
+        var data = json.decode(response.body);
+
+        if (response.statusCode == 200) {
+          setState(() {
+            result = ResultDOGI.fromJson(data);
+          });
+
+          if (result.deliveryOrder!.isEmpty) {
+            showErrorDialog(result.message!);
+          } else {
+            setState(() {
+              step++;
+              documentNumberInput = split[0];
+              plandate = split[1];
+            });
+          }
+        } else {
+          showErrorDialog('Error documentNumberCheck');
+        }
+      } catch (e) {
+        showErrorDialog('Error occured while documentNumberCheck');
+      }
+    }
+
     setVisible();
     setReadOnly();
     setColor();
@@ -374,20 +448,255 @@ class _GoodIssueState extends State<GoodIssue> {
 
   Future<void> matNumberCheck() async {
     setState(() {
-      step++;
-      matNumberInput = matNumberController.text;
-      matDescInput = '1';
-      lotInput = '2';
-      palletnumberInput = '3';
-      orderQtyInput = '4';
-      remainQtyInput = '5';
-      packingQtyInput = '6';
+      desc = '';
+      batch = '';
+      palletno = '';
+      weight = '';
+      bagType = '';
+      qtyLoaded = 0;
+      orderQty = 0;
+      remainQty = 0;
+      pickingQty = 0;
+      matNumberController.text =
+          'Moplen HP400K|60112405|998|750|KG|08/08/2017|';
     });
+
+    var split = matNumberController.text.split('|');
+
+    //setBagType and Batch
+    if (split.length == 6) {
+      setState(() {
+        bagType = 'LB';
+        batch = split[1];
+      });
+    } else if (split.length == 7) {
+      setState(() {
+        bagType = 'JB';
+        batch = split[1];
+      });
+    }
+
+    //check Data from Result Before
+    if (batch == result.deliveryOrder![0].batch &&
+        bagType == result.deliveryOrder![0].bagType) {
+      setState(() {
+        desc = split[0];
+        batch = split[1];
+        palletno = split[2];
+        weight = split[3];
+      });
+
+      //call SelectLTLoaded API
+      try {
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        if (prefs.getString('configs') != null) {
+          configs = prefs.getString('configs')!;
+        }
+        accessToken = prefs.getString('token')!;
+
+        var url = Uri.parse('http://' +
+            configs +
+            '/API/api/LoadTracking/SelectLTLoaded/' +
+            result.deliveryOrder![0].matno! +
+            '/' +
+            batch +
+            '/' +
+            palletno);
+
+        var headers = {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          "Authorization": "Bearer " + accessToken
+        };
+
+        http.Response response = await http.get(url, headers: headers);
+
+        //var data = json.decode(response.body);
+
+        if (response.statusCode == 200) {
+          showErrorDialog('สินค้าพาเลทนี้ถูกสแกนแล้ว');
+          setState(() {
+            matNumberController.text = '';
+          });
+        } else if (response.statusCode == 204) {
+          //SelectLTQTYLoaded API
+          try {
+            SharedPreferences prefs = await SharedPreferences.getInstance();
+            if (prefs.getString('configs') != null) {
+              configs = prefs.getString('configs')!;
+            }
+            accessToken = prefs.getString('token')!;
+
+            var url = Uri.parse('http://' +
+                configs +
+                '/API/api/LoadTracking/SelectLTQTYLoaded/' +
+                result.deliveryOrder![0].dono! +
+                '/' +
+                result.deliveryOrder![0].planDate! +
+                '/' +
+                result.deliveryOrder![0].matno! +
+                '/' +
+                batch);
+
+            var headers = {
+              "Content-Type": "application/json",
+              "Accept": "application/json",
+              "Authorization": "Bearer " + accessToken
+            };
+
+            http.Response response = await http.get(url, headers: headers);
+
+            var data = json.decode(response.body);
+
+            if (response.statusCode == 200) {
+              setState(() {
+                qtyLoaded = data;
+                orderQty = result.deliveryOrder![0].quantity!;
+                remainQty = orderQty - qtyLoaded;
+                pickingQty = int.parse(split[3]);
+
+                matNumberInput = result.deliveryOrder![0].matno.toString();
+                matDescInput = split[0];
+                lotInput = split[1];
+                palletnumberInput = split[2];
+                orderQtyInput = orderQty.toString();
+                remainQtyInput = remainQty.toString();
+                packingQtyInput = pickingQty.toString();
+                step++;
+              });
+            } else {
+              showErrorDialog('Error SelectLTQTYLoaded');
+              setState(() {
+                matNumberController.text = '';
+                matNumberInput = '';
+              });
+            }
+          } catch (e) {
+            showErrorDialog('Error occured while SelectLTQTYLoaded');
+          }
+        }
+      } catch (e) {
+        showErrorDialog('Error occured while SelectLTLoaded');
+      }
+    } else {
+      String msg = split[0];
+      showErrorDialog('ไม่พบข้อมูลสินค้า ' + msg + ' ใน DO');
+      setState(() {
+        matNumberController.text = '';
+        matNumberInput = '';
+      });
+    }
+
     setVisible();
     setReadOnly();
     setColor();
     setText();
     setFocus();
+  }
+
+  Future<void> submitStep() async {
+    //call SelectChkLoadedFull API
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      if (prefs.getString('configs') != null) {
+        configs = prefs.getString('configs')!;
+      }
+      accessToken = prefs.getString('token')!;
+      username = prefs.getString('username')!;
+
+      var url = Uri.parse('http://' +
+          configs +
+          '/API/api/LoadTracking/SelectChkLoadedFull/' +
+          result.deliveryOrder![0].dono! +
+          '/' +
+          result.deliveryOrder![0].planDate!);
+
+      var headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Authorization": "Bearer " + accessToken
+      };
+
+      http.Response response = await http.get(url, headers: headers);
+
+      var data = json.decode(response.body);
+
+      if (response.statusCode == 200) {
+        setState(() {
+          resultChkLoadedFull = ResultSelectChkLoadedFull.fromJson(data);
+        });
+
+        if (pickingQty >
+            resultChkLoadedFull.orderQTY! - resultChkLoadedFull.loadQTY!) {
+          showErrorDialog('น้ำหนักเกิน Order');
+        } else {
+          //call CreateLoadTrackingFromHH API
+          try {
+            SharedPreferences prefs = await SharedPreferences.getInstance();
+            if (prefs.getString('configs') != null) {
+              configs = prefs.getString('configs')!;
+            }
+            accessToken = prefs.getString('token')!;
+
+            var url = Uri.parse('http://' +
+                configs +
+                '/API/api/LoadTracking/CreateLoadTrackingFromHH?dono=' +
+                result.deliveryOrder![0].dono! +
+                '&plandate=' +
+                plandate +
+                '&matno=' +
+                result.deliveryOrder![0].matno! +
+                '&matdesclabel=' +
+                result.deliveryOrder![0].matDescLabel! +
+                '&batch=' +
+                result.deliveryOrder![0].batch! +
+                '&sloc=' +
+                result.deliveryOrder![0].sloc! +
+                '&palletno=' +
+                palletno +
+                '&qty=' +
+                weight +
+                '&username=' +
+                username);
+
+            var headers = {
+              "Content-Type": "application/json",
+              "Accept": "application/json",
+              "Authorization": "Bearer " + accessToken
+            };
+
+            final encoding = Encoding.getByName('utf-8');
+
+            http.Response response = await http.post(
+              url,
+              headers: headers,
+              //body: jsonBody,
+              encoding: encoding,
+            );
+
+            if (response.statusCode == 200) {
+              showSuccessDialog('Post Successful!');
+              setState(() {
+                step = 1;
+              });
+            } else {
+              showErrorDialog('Error SelectLTQTYLoaded');
+            }
+            setVisible();
+            setReadOnly();
+            setColor();
+            setText();
+            setFocus();
+          } catch (e) {
+            showErrorDialog('Error occured while SelectLTQTYLoaded');
+          }
+        }
+      } else {
+        showErrorDialog('Error SelectChkLoadedFull');
+      }
+    } catch (e) {
+      showErrorDialog('Error occured while SelectChkLoadedFull');
+    }
   }
 
   Future<void> setHistoryDocid() async {
@@ -710,6 +1019,7 @@ class _GoodIssueState extends State<GoodIssue> {
                                 )),
                             onPressed: submitEnabled
                                 ? () {
+                                    submitStep();
                                     /*Scaffold.of(context).showSnackBar(
                                   SnackBar(content: Text('Post Complete')));*/
                                   }
