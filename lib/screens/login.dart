@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:progress_dialog/progress_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:test/class/resultlogin.dart';
+import 'package:test/class/user.dart';
 import 'package:test/screens/main_screen.dart';
 import 'package:rounded_loading_button/rounded_loading_button.dart';
 import 'dart:async';
@@ -366,17 +367,21 @@ class _LoginState extends State<Login> {
       if (prefs.getString('configs') != null) {
         configs = prefs.getString('configs')!;
       }
-      var url = Uri.parse('http://' +
-          configs +
-          '/API/api/User/Login?username=U001&password=password1');
+      var url = Uri.parse('http://' + configs + '/API/api/User/Login');
       var headers = {'Content-Type': 'application/json'};
-      //var jsonBody = jsonEncode(userDataLogin);
+
+      UserLogin user = new UserLogin();
+      setState(() {
+        user.userName = 'U001';
+        user.password = 'password1';
+      });
+      var jsonBody = jsonEncode(user);
       final encoding = Encoding.getByName('utf-8');
 
       http.Response response = await http.post(
         url,
         headers: headers,
-        //body: jsonBody,
+        body: jsonBody,
         encoding: encoding,
       );
       var data = json.decode(response.body);

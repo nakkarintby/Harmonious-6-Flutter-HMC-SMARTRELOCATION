@@ -3,6 +3,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:test/class/createLoadTracking.dart';
 import 'package:test/class/resultSelectChkLoadedFull.dart';
 import 'package:test/class/resultdogi.dart';
 import 'package:test/screens/history.dart';
@@ -422,7 +423,7 @@ class _GoodIssueState extends State<GoodIssue> {
             result = ResultDOGI.fromJson(data);
           });
 
-          if (result.deliveryOrder!.isEmpty) {
+          if (result.result! == false) {
             showErrorDialog(result.message!);
           } else {
             setState(() {
@@ -458,7 +459,7 @@ class _GoodIssueState extends State<GoodIssue> {
       remainQty = 0;
       pickingQty = 0;
       matNumberController.text =
-          'Moplen HP400K|60112405|998|750|KG|08/08/2017|';
+          'Moplen HP400K|60112405|1988|1500|KG|08/08/2017|';
     });
 
     var split = matNumberController.text.split('|');
@@ -517,6 +518,7 @@ class _GoodIssueState extends State<GoodIssue> {
           showErrorDialog('สินค้าพาเลทนี้ถูกสแกนแล้ว');
           setState(() {
             matNumberController.text = '';
+            matNumberInput = '';
           });
         } else if (response.statusCode == 204) {
           //SelectLTQTYLoaded API
@@ -638,26 +640,25 @@ class _GoodIssueState extends State<GoodIssue> {
             }
             accessToken = prefs.getString('token')!;
 
+            CreateLoadingTracking createLT = new CreateLoadingTracking();
+            setState(() {
+              createLT.loadTrackingId = '1';
+              createLT.dono = result.deliveryOrder![0].dono!;
+              createLT.planDate = plandate;
+              createLT.matno = result.deliveryOrder![0].matno!;
+              createLT.matDescLabel = result.deliveryOrder![0].matDescLabel!;
+              createLT.batch = result.deliveryOrder![0].batch!;
+              createLT.sloc = result.deliveryOrder![0].sloc!;
+              createLT.palletno = palletno;
+              createLT.quantity = int.parse(weight);
+              createLT.createdBy = username;
+              createLT.isDeleted = false;
+              createLT.isSynData = false;
+            });
+
             var url = Uri.parse('http://' +
                 configs +
-                '/API/api/LoadTracking/CreateLoadTrackingFromHH?dono=' +
-                result.deliveryOrder![0].dono! +
-                '&plandate=' +
-                plandate +
-                '&matno=' +
-                result.deliveryOrder![0].matno! +
-                '&matdesclabel=' +
-                result.deliveryOrder![0].matDescLabel! +
-                '&batch=' +
-                result.deliveryOrder![0].batch! +
-                '&sloc=' +
-                result.deliveryOrder![0].sloc! +
-                '&palletno=' +
-                palletno +
-                '&qty=' +
-                weight +
-                '&username=' +
-                username);
+                '/API/api/LoadTracking/CreateLoadTrackingFromHH');
 
             var headers = {
               "Content-Type": "application/json",
@@ -666,11 +667,12 @@ class _GoodIssueState extends State<GoodIssue> {
             };
 
             final encoding = Encoding.getByName('utf-8');
+            var jsonBody = jsonEncode(createLT);
 
             http.Response response = await http.post(
               url,
               headers: headers,
-              //body: jsonBody,
+              body: jsonBody,
               encoding: encoding,
             );
 
@@ -680,7 +682,7 @@ class _GoodIssueState extends State<GoodIssue> {
                 step = 1;
               });
             } else {
-              showErrorDialog('Error SelectLTQTYLoaded');
+              showErrorDialog('Error CreateLoadTrackingFromHH');
             }
             setVisible();
             setReadOnly();
@@ -688,7 +690,7 @@ class _GoodIssueState extends State<GoodIssue> {
             setText();
             setFocus();
           } catch (e) {
-            showErrorDialog('Error occured while SelectLTQTYLoaded');
+            showErrorDialog('Error occured while CreateLoadTrackingFromHH');
           }
         }
       } else {
@@ -701,7 +703,15 @@ class _GoodIssueState extends State<GoodIssue> {
 
   Future<void> setHistoryDocid() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString('historydocid', documentNumberInput);
+    await prefs.setString('dono', result.deliveryOrder![0].dono!);
+    await prefs.setString('plandate', result.deliveryOrder![0].planDate!);
+    await prefs.setString('matno', result.deliveryOrder![0].matno!);
+    await prefs.setString('batch', result.deliveryOrder![0].batch!);
+    await prefs.setString('matdesc', result.deliveryOrder![0].matDescLabel!);
+    var a = prefs.getString('dono');
+    var b = prefs.getString('plandate');
+    var c = prefs.getString('matno');
+    var d = prefs.getString('batch');
   }
 
   @override

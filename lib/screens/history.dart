@@ -1,8 +1,11 @@
+import 'dart:ffi';
+
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:test/class/listpallet.dart';
 import 'package:test/class/resvalidatepalletitem.dart';
 
 class History extends StatefulWidget {
@@ -11,66 +14,124 @@ class History extends StatefulWidget {
 }
 
 class _HistoryState extends State<History> {
-  Palletitem test = Palletitem();
-  Palletitem test2 = Palletitem();
-  Palletitem test3 = Palletitem();
-  Palletitem test4 = Palletitem();
-  List<Palletitem> list = [];
-  String documentId = "";
+  List<ListPallet> list = [];
   String configs = '';
+  String accessToken = "";
+  String dono = "";
+  String plandate = "";
+  String matno = "";
+  String batch = "";
+  String matdesc = "";
+  late Timer timer;
 
   @override
   void initState() {
     super.initState();
     getSharedPrefs();
-    onload();
+  }
+
+  void showErrorDialog(String error) {
+    //MyWidget.showMyAlertDialog(context, "Error", error);
+    alertDialog(error, 'Error');
+  }
+
+  void showSuccessDialog(String success) {
+    //MyWidget.showMyAlertDialog(context, "Success", success);
+    alertDialog(success, 'Success');
+  }
+
+  void alertDialog(String msg, String type) {
+    Icon icon = Icon(Icons.info_outline, color: Colors.lightBlue);
+    switch (type) {
+      case "Success":
+        icon = Icon(Icons.check_circle_outline, color: Colors.lightGreen);
+        break;
+      case "Error":
+        icon = Icon(Icons.error_outline, color: Colors.redAccent);
+        break;
+      case "Warning":
+        icon = Icon(Icons.warning_amber_outlined, color: Colors.orangeAccent);
+        break;
+      case "Infomation":
+        icon = Icon(Icons.info_outline, color: Colors.lightBlue);
+        break;
+    }
+
+    showDialog(
+        context: context,
+        builder: (BuildContext builderContext) {
+          timer = Timer(Duration(seconds: 5), () {
+            Navigator.of(context, rootNavigator: true).pop();
+          });
+
+          return AlertDialog(
+            title: Row(children: [icon, Text(" " + type)]),
+            content: Text(msg),
+          );
+        }).then((val) {
+      if (timer.isActive) {
+        timer.cancel();
+      }
+    });
   }
 
   Future<void> getSharedPrefs() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       configs = prefs.getString('configs');
-      documentId = prefs.getString('historydocid');
+      dono = prefs.getString('dono');
+      plandate = prefs.getString('plandate');
+      matno = prefs.getString('matno');
+      batch = prefs.getString('batch');
+      matdesc = prefs.getString('matdesc');
     });
+    await onload();
   }
 
   Future<void> onload() async {
-    /*setState(() {
-      test.palletNo = '';
-      test.lot = 'no data item';
-      test.palletNo = '';
-      list.add(test);
-    });*/
-    setState(() {
-      test.binId = 1;
-      test.lot = 'TP058901';
-      test.weight = 750;
-      test2.binId = 2;
-      test2.lot = 'TC0457184';
-      test2.weight = 1250;
-      test3.binId = 3;
-      test3.lot = 'TS487198';
-      test3.weight = 550;
-      test4.binId = 4;
-      test4.lot = 'CP894141';
-      test4.weight = 380;
-      list.add(test);
-      list.add(test2);
-      list.add(test);
-      list.add(test2);
-      list.add(test);
-      list.add(test2);
-      list.add(test);
-      list.add(test2);
-      list.add(test);
-      list.add(test2);
-      list.add(test);
-      list.add(test2);
-      list.add(test);
-      list.add(test2);
-      list.add(test);
-      list.add(test2);
-    });
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      if (prefs.getString('configs') != null) {
+        configs = prefs.getString('configs')!;
+      }
+      accessToken = prefs.getString('token')!;
+
+      var url = Uri.parse('http://' +
+          configs +
+          '/API/api/LoadTracking/SelectLTLoadedHistList/' +
+          dono +
+          '/' +
+          plandate +
+          '/' +
+          matno +
+          '/' +
+          batch);
+
+      var headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Authorization": "Bearer " + accessToken
+      };
+
+      http.Response response = await http.get(url, headers: headers);
+
+      if (response.statusCode == 200) {
+        setState(() {
+          list = (json.decode(response.body) as List)
+              .map((data) => ListPallet.fromJson(data))
+              .toList();
+        });
+
+        if (list.length == 0) {
+          //MyWidget.showMyAlertDialog(context, "Error", "Data not found");
+          showErrorDialog('ไม่พบข้อมูลการ Load สินค้า ' + matdesc);
+        }
+      } else {
+        showErrorDialog('Error SelectLTLoadedHistList');
+      }
+    } catch (e) {
+      showErrorDialog('Error occured while SelectLTLoadedHistList');
+    }
   }
 
   DataTable _createDataTable() {
@@ -107,9 +168,9 @@ class _HistoryState extends State<History> {
     return list
         .map((list) => DataRow(
                 color: MaterialStateColor.resolveWith((states) {
-                  return list.binId! % 2 == 0
-                      ? Colors.grey[200]!
-                      : Colors.transparent; //make tha magic!
+                  return list.quantity! % 2 == 0
+                      ? Colors.transparent
+                      : Colors.grey[200]!; //make tha magic!
                 }),
                 cells: [
                   DataCell(Container(
@@ -117,24 +178,15 @@ class _HistoryState extends State<History> {
                       child: Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
-                            list.lot.toString(),
+                            list.palletno.toString(),
                             textAlign: TextAlign.start,
                           )))),
-                  DataCell(
-                    list.binId! % 2 == 0
-                        ? Align(
-                            alignment: Alignment.center,
-                            child: Text(
-                              list.weight.toString(),
-                              textAlign: TextAlign.start,
-                            ))
-                        : Align(
-                            alignment: Alignment.center,
-                            child: Text(
-                              list.weight.toString(),
-                              textAlign: TextAlign.start,
-                            )),
-                  ),
+                  DataCell(Align(
+                      alignment: Alignment.center,
+                      child: Text(
+                        list.quantity.toString(),
+                        textAlign: TextAlign.start,
+                      ))),
                 ]))
         .toList();
   }

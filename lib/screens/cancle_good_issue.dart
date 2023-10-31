@@ -59,7 +59,13 @@ class _CancleGoodIssueState extends State<CancleGoodIssue> {
   late Timer timer;
 
   String configs = '';
+  String accessToken = '';
   String deviceInfo = '';
+
+  var desc = '';
+  var batch = '';
+  var palletno = '';
+  var weight = '';
 
   @override
   void initState() {
@@ -277,6 +283,53 @@ class _CancleGoodIssueState extends State<CancleGoodIssue> {
   }
 
   Future<void> matNumberCheck() async {
+    setState(() {
+      matNumberController.text =
+          'Moplen HP400K|60112405|999|750|KG|08/08/2017|';
+    });
+
+    var split = matNumberController.text.split('|');
+
+    setState(() {
+      desc = split[0];
+      batch = split[1];
+      palletno = split[2];
+      weight = split[3];
+    });
+
+    //call SelectLTByBatchPalletQTY api
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      if (prefs.getString('configs') != null) {
+        configs = prefs.getString('configs')!;
+      }
+      accessToken = prefs.getString('token')!;
+
+      var url = Uri.parse('http://' +
+          configs +
+          '/API/api/DeliveryOrder/DOValidate/' +
+          split[0] +
+          '/' +
+          split[1]);
+
+      var headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Authorization": "Bearer " + accessToken
+      };
+
+      http.Response response = await http.get(url, headers: headers);
+
+      if (response.statusCode == 200) {
+      } else if (response.statusCode == 204) {
+        showErrorDialog('สินค้าพาเลทนี้ยังไม่ถูกสแกน');
+      } else {
+        showErrorDialog('Error documentNumberCheck');
+      }
+    } catch (e) {
+      showErrorDialog('Error occured while documentNumberCheck');
+    }
+
     setState(() {
       step++;
       matNumberInput = matNumberController.text;
