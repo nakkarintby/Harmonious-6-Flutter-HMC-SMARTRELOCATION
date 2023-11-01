@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:input_with_keyboard_control/input_with_keyboard_control.dart';
 import 'package:progress_dialog/progress_dialog.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:test/class/loadTrackingResult.dart';
 
 class CancleGoodIssue extends StatefulWidget {
   const CancleGoodIssue({Key? key}) : super(key: key);
@@ -66,6 +67,9 @@ class _CancleGoodIssueState extends State<CancleGoodIssue> {
   var batch = '';
   var palletno = '';
   var weight = '';
+  var username = '';
+
+  LoadTrackingResult result = new LoadTrackingResult();
 
   @override
   void initState() {
@@ -285,7 +289,7 @@ class _CancleGoodIssueState extends State<CancleGoodIssue> {
   Future<void> matNumberCheck() async {
     setState(() {
       matNumberController.text =
-          'Moplen HP400K|60112405|999|750|KG|08/08/2017|';
+          'Moplen HP400K|60112405|272|750|KG|08/08/2017|';
     });
 
     var split = matNumberController.text.split('|');
@@ -307,10 +311,12 @@ class _CancleGoodIssueState extends State<CancleGoodIssue> {
 
       var url = Uri.parse('http://' +
           configs +
-          '/API/api/DeliveryOrder/DOValidate/' +
-          split[0] +
+          '/API/api/LoadTracking/SelectLTByBatchPalletQTY/' +
+          batch +
           '/' +
-          split[1]);
+          palletno +
+          '/' +
+          weight);
 
       var headers = {
         "Content-Type": "application/json",
@@ -321,24 +327,128 @@ class _CancleGoodIssueState extends State<CancleGoodIssue> {
       http.Response response = await http.get(url, headers: headers);
 
       if (response.statusCode == 200) {
+        setState(() {
+          result = LoadTrackingResult.fromJson(json.decode(response.body));
+          step++;
+          matNumberInput = result.matno!;
+          matDescInput = desc;
+          lotInput = result.batch!;
+          palletnumberInput = result.palletno!;
+          packingQtyInput = result.quantity!.toString();
+          documentNumberInput = result.dono!;
+        });
       } else if (response.statusCode == 204) {
         showErrorDialog('สินค้าพาเลทนี้ยังไม่ถูกสแกน');
       } else {
-        showErrorDialog('Error documentNumberCheck');
+        showErrorDialog('Error matNumberCheck');
       }
     } catch (e) {
-      showErrorDialog('Error occured while documentNumberCheck');
+      showErrorDialog('Error occured while matNumberCheck');
+    }
+    setVisible();
+    setReadOnly();
+    setColor();
+    setText();
+    setFocus();
+  }
+
+  Future<void> submitStep() async {
+    //call ChkDoStatus API
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      if (prefs.getString('configs') != null) {
+        configs = prefs.getString('configs')!;
+      }
+      accessToken = prefs.getString('token')!;
+      username = prefs.getString('username')!;
+      LoadTrackingResult tmp = LoadTrackingResult();
+      setState(() {
+        tmp = result;
+        tmp.isDeleted = true;
+        tmp.lastUpdatedBy = username;
+      });
+
+      var url = Uri.parse('http://' +
+          configs +
+          '/API/api/DeliveryOrder/ChkDoStatus/' +
+          result.dono! +
+          '/' +
+          result.planDate!);
+
+      var headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Authorization": "Bearer " + accessToken
+      };
+
+      http.Response response = await http.get(
+        url,
+        headers: headers,
+      );
+
+      var data = json.decode(response.body);
+
+      if (response.statusCode == 200) {
+        if (data == 'A') {
+          showSuccessDialog('ข้อมูล DO ถูกอนุมัติเรียบร้อยแล้ว');
+          setVisible();
+          setReadOnly();
+          setColor();
+          setText();
+          setFocus();
+          return;
+        }
+      } else {
+        showErrorDialog('Error ChkDoStatus');
+      }
+    } catch (e) {
+      showErrorDialog('Error occured while ChkDoStatus');
     }
 
-    setState(() {
-      step++;
-      matNumberInput = matNumberController.text;
-      matDescInput = '1';
-      lotInput = '2';
-      palletnumberInput = '3';
-      packingQtyInput = '6';
-      documentNumberInput = '218';
-    });
+    //call UpdateLoadTracking API
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      if (prefs.getString('configs') != null) {
+        configs = prefs.getString('configs')!;
+      }
+      accessToken = prefs.getString('token')!;
+      username = prefs.getString('username')!;
+      LoadTrackingResult tmp = LoadTrackingResult();
+      setState(() {
+        tmp = result;
+        tmp.isDeleted = true;
+        tmp.lastUpdatedBy = username;
+      });
+
+      var url = Uri.parse('http://' + configs + '/API/api/LoadTracking/Update');
+
+      var headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Authorization": "Bearer " + accessToken
+      };
+
+      final encoding = Encoding.getByName('utf-8');
+      var jsonBody = jsonEncode(tmp);
+
+      http.Response response = await http.post(
+        url,
+        headers: headers,
+        body: jsonBody,
+        encoding: encoding,
+      );
+
+      if (response.statusCode == 200) {
+        showSuccessDialog('Cancle Pallet Successful!');
+        setState(() {
+          step = 1;
+        });
+      } else {
+        showErrorDialog('Error UpdateLoadTracking');
+      }
+    } catch (e) {
+      showErrorDialog('Error occured while UpdateLoadTracking');
+    }
     setVisible();
     setReadOnly();
     setColor();
@@ -585,7 +695,8 @@ class _CancleGoodIssueState extends State<CancleGoodIssue> {
                                   color: Colors.white,
                                 )),
                             onPressed: submitEnabled
-                                ? () {
+                                ? () async {
+                                    await submitStep();
                                     /*Scaffold.of(context).showSnackBar(
                                   SnackBar(content: Text('Post Complete')));*/
                                   }

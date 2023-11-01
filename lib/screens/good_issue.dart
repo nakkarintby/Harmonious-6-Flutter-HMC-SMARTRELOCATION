@@ -459,7 +459,7 @@ class _GoodIssueState extends State<GoodIssue> {
       remainQty = 0;
       pickingQty = 0;
       matNumberController.text =
-          'Moplen HP400K|60112405|1988|1500|KG|08/08/2017|';
+          'Moplen HP400K|60112405|272|750|KG|08/08/2017|';
     });
 
     var split = matNumberController.text.split('|');
