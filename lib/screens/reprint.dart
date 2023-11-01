@@ -3,6 +3,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:test/class/createBarCode.dart';
 import 'package:test/class/resvalidatepalletitem.dart';
 import 'package:test/screens/history.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
@@ -67,7 +68,17 @@ class _ReprintState extends State<Reprint> {
 
   String configs = '';
   String deviceInfo = '';
+  String accessToken = '';
+  String username = '';
   bool haveMOG = false;
+
+  var desc = '';
+  var batch = '';
+  var palletno = '';
+  var weight = '';
+  var bagType = '';
+  var unit = '';
+  var productionDate = '';
 
   @override
   void initState() {
@@ -123,14 +134,14 @@ class _ReprintState extends State<Reprint> {
     } else if (step == 2) {
       if (!haveMOG) {
         setState(() {
-          matNumberVisible = true;
+          matNumberVisible = false;
           detailVisible = true;
           mogVisible = false;
           buttonVisible = true;
         });
       } else {
         setState(() {
-          matNumberVisible = true;
+          matNumberVisible = false;
           detailVisible = true;
           mogVisible = true;
           buttonVisible = true;
@@ -239,7 +250,7 @@ class _ReprintState extends State<Reprint> {
           lotController.text = lotInput;
           palletnumberController.text = palletnumberInput;
           packingQtyController.text = packingQtyInput;
-          labelQtyController.text = labelQtyInput;
+          labelQtyController.text = '';
           mogController.text = '';
         });
       } else {
@@ -249,8 +260,8 @@ class _ReprintState extends State<Reprint> {
           lotController.text = lotInput;
           palletnumberController.text = palletnumberInput;
           packingQtyController.text = packingQtyInput;
-          labelQtyController.text = labelQtyInput;
-          mogController.text = mogInput;
+          labelQtyController.text = '';
+          mogController.text = '';
         });
       }
     }
@@ -343,18 +354,144 @@ class _ReprintState extends State<Reprint> {
 
   Future<void> matNumberCheck() async {
     setState(() {
+      matNumberController.text =
+          'Moplen HP400K|60112405|272|750|KG|2017-08-08|';
+    });
+
+    var split = matNumberController.text.split('|');
+
+    //setBagType
+    if (split.length == 6) {
+      setState(() {
+        bagType = 'LB';
+        haveMOG = false;
+        productionDate = '';
+        mogController.text = '';
+        labelQtyController.text = '';
+      });
+    } else if (split.length == 7) {
+      setState(() {
+        bagType = 'JB';
+        haveMOG = true;
+        productionDate = split[5];
+        mogController.text = '';
+        labelQtyController.text = '';
+      });
+    }
+
+    setState(() {
+      desc = split[0];
+      batch = split[1];
+      palletno = split[2];
+      weight = split[3];
+      unit = split[4];
+    });
+
+    setState(() {
       step++;
       matNumberInput = matNumberController.text;
-      matDescInput = '1';
-      lotInput = '2';
-      palletnumberInput = '3';
-      packingQtyInput = '6';
+      matDescInput = desc;
+      lotInput = batch;
+      palletnumberInput = palletno;
+      packingQtyInput = weight;
     });
     setVisible();
     setReadOnly();
     setColor();
     setText();
     setFocus();
+  }
+
+  Future<void> submitStep() async {
+    if (haveMOG) {
+      if (labelQtyController.text == '' || mogController.text == '') {
+        showErrorDialog('Please Enter Data');
+        setVisible();
+        setReadOnly();
+        setColor();
+        setText();
+        setFocus();
+        return;
+      }
+    } else {
+      if (labelQtyController.text == '') {
+        showErrorDialog('Please Enter Data');
+        setVisible();
+        setReadOnly();
+        setColor();
+        setText();
+        setFocus();
+        return;
+      }
+    }
+
+    //call GenerateBarcode API
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      if (prefs.getString('configs') != null) {
+        configs = prefs.getString('configs')!;
+      }
+      accessToken = prefs.getString('token')!;
+      username = prefs.getString('username')!;
+
+      CreateBarCode createBC = new CreateBarCode();
+      setState(() {
+        labelQtyInput = labelQtyController.text;
+        mogInput = mogController.text;
+        createBC.bagType = '12'; //if user bagtype JB or LB post not successful
+        createBC.matNo = '1';
+        createBC.matDesc = desc;
+        createBC.batch = batch;
+        createBC.palletNo = palletnumberInput;
+        createBC.weight = int.parse(weight);
+        createBC.unit = unit;
+        createBC.productionDate = productionDate;
+        createBC.tisi = mogInput;
+        createBC.labelQty = int.parse(labelQtyInput);
+        createBC.user = username;
+      });
+
+      if (productionDate == '') {
+        setState(() {
+          createBC.productionDate = null;
+        });
+      }
+
+      var url =
+          Uri.parse('http://' + configs + '/API/api/Barcode/GenerateBarcode');
+
+      var headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Authorization": "Bearer " + accessToken
+      };
+
+      final encoding = Encoding.getByName('utf-8');
+      var jsonBody = jsonEncode(createBC);
+
+      http.Response response = await http.post(
+        url,
+        headers: headers,
+        body: jsonBody,
+        encoding: encoding,
+      );
+
+      if (response.statusCode == 200) {
+        showSuccessDialog('Post Successful!');
+        setState(() {
+          step = 1;
+        });
+      } else {
+        showErrorDialog('Error GenerateBarcode');
+      }
+      setVisible();
+      setReadOnly();
+      setColor();
+      setText();
+      setFocus();
+    } catch (e) {
+      showErrorDialog('Error occured while GenerateBarcode');
+    }
   }
 
   @override
@@ -536,34 +673,6 @@ class _ReprintState extends State<Reprint> {
                       left: MediaQuery.of(context).size.width / 5,
                       right: MediaQuery.of(context).size.width / 5),
                   child: Visibility(
-                      visible: detailVisible,
-                      child: TextFormField(
-                        //focusNode: focusNodes[0],
-                        readOnly: labelQtyReadonly,
-                        textInputAction: TextInputAction.go,
-                        style: TextStyle(fontSize: 13),
-                        onFieldSubmitted: (value) {},
-                        decoration: InputDecoration(
-                          //icon: const Icon(Icons.person),
-                          fillColor: labelQtyColor,
-                          filled: true,
-                          hintText: 'Enter Label Qty',
-                          labelText: 'Label Qty',
-                          labelStyle: TextStyle(fontSize: 13),
-                          border: OutlineInputBorder(),
-                          isDense: true, // Added this
-                          contentPadding: EdgeInsets.all(16), //
-                        ),
-                        controller: labelQtyController,
-                      ))),
-              SizedBox(
-                height: 18,
-              ),
-              Container(
-                  padding: new EdgeInsets.only(
-                      left: MediaQuery.of(context).size.width / 5,
-                      right: MediaQuery.of(context).size.width / 5),
-                  child: Visibility(
                       visible: mogVisible,
                       child: TextFormField(
                         //focusNode: focusNodes[0],
@@ -583,6 +692,34 @@ class _ReprintState extends State<Reprint> {
                           contentPadding: EdgeInsets.all(16), //
                         ),
                         controller: mogController,
+                      ))),
+              SizedBox(
+                height: 18,
+              ),
+              Container(
+                  padding: new EdgeInsets.only(
+                      left: MediaQuery.of(context).size.width / 5,
+                      right: MediaQuery.of(context).size.width / 5),
+                  child: Visibility(
+                      visible: detailVisible,
+                      child: TextFormField(
+                        //focusNode: focusNodes[0],
+                        readOnly: labelQtyReadonly,
+                        textInputAction: TextInputAction.go,
+                        style: TextStyle(fontSize: 13),
+                        onFieldSubmitted: (value) {},
+                        decoration: InputDecoration(
+                          //icon: const Icon(Icons.person),
+                          fillColor: labelQtyColor,
+                          filled: true,
+                          hintText: 'Enter Label Qty',
+                          labelText: 'Label Qty',
+                          labelStyle: TextStyle(fontSize: 13),
+                          border: OutlineInputBorder(),
+                          isDense: true, // Added this
+                          contentPadding: EdgeInsets.all(16), //
+                        ),
+                        controller: labelQtyController,
                       ))),
               SizedBox(
                 height: 18,
@@ -624,7 +761,8 @@ class _ReprintState extends State<Reprint> {
                                   color: Colors.white,
                                 )),
                             onPressed: submitEnabled
-                                ? () {
+                                ? () async {
+                                    await submitStep();
                                     /*Scaffold.of(context).showSnackBar(
                                   SnackBar(content: Text('Post Complete')));*/
                                   }
