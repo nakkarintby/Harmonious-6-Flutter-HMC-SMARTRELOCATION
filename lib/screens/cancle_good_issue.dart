@@ -267,6 +267,28 @@ class _CancleGoodIssueState extends State<CancleGoodIssue> {
     });
   }
 
+  Future<void> showProgressLoading(bool finish) async {
+    ProgressDialog pr = ProgressDialog(context);
+    pr = ProgressDialog(context,
+        type: ProgressDialogType.Normal, isDismissible: true, showLogs: true);
+    pr.style(
+        progress: 50.0,
+        message: "Please wait...",
+        progressWidget: Container(
+            padding: EdgeInsets.all(8.0), child: CircularProgressIndicator()),
+        maxProgress: 100.0,
+        progressTextStyle: TextStyle(
+            color: Colors.black, fontSize: 13.0, fontWeight: FontWeight.w400),
+        messageTextStyle: TextStyle(
+            color: Colors.black, fontSize: 19.0, fontWeight: FontWeight.w600));
+
+    if (finish == false) {
+      await pr.show();
+    } else {
+      await pr.hide();
+    }
+  }
+
   Future<void> scanQR() async {
     String barcodeScanRes;
     try {
@@ -287,9 +309,10 @@ class _CancleGoodIssueState extends State<CancleGoodIssue> {
   }
 
   Future<void> matNumberCheck() async {
+    await showProgressLoading(false);
     setState(() {
       matNumberController.text =
-          'Moplen HP400K|60112405|272|750|KG|08/08/2017|';
+          'Moplen HP400K|60112405|998|750|KG|08/08/2017|';
     });
 
     var split = matNumberController.text.split('|');
@@ -337,12 +360,16 @@ class _CancleGoodIssueState extends State<CancleGoodIssue> {
           packingQtyInput = result.quantity!.toString();
           documentNumberInput = result.dono!;
         });
+        await showProgressLoading(true);
       } else if (response.statusCode == 204) {
+        await showProgressLoading(true);
         showErrorDialog('สินค้าพาเลทนี้ยังไม่ถูกสแกน');
       } else {
+        await showProgressLoading(true);
         showErrorDialog('Error matNumberCheck');
       }
     } catch (e) {
+      await showProgressLoading(true);
       showErrorDialog('Error occured while matNumberCheck');
     }
     setVisible();
@@ -353,6 +380,7 @@ class _CancleGoodIssueState extends State<CancleGoodIssue> {
   }
 
   Future<void> submitStep() async {
+    await showProgressLoading(false);
     //call ChkDoStatus API
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -361,12 +389,6 @@ class _CancleGoodIssueState extends State<CancleGoodIssue> {
       }
       accessToken = prefs.getString('token')!;
       username = prefs.getString('username')!;
-      LoadTrackingResult tmp = LoadTrackingResult();
-      setState(() {
-        tmp = result;
-        tmp.isDeleted = true;
-        tmp.lastUpdatedBy = username;
-      });
 
       var url = Uri.parse('http://' +
           configs +
@@ -390,6 +412,7 @@ class _CancleGoodIssueState extends State<CancleGoodIssue> {
 
       if (response.statusCode == 200) {
         if (data == 'A') {
+          await showProgressLoading(true);
           showSuccessDialog('ข้อมูล DO ถูกอนุมัติเรียบร้อยแล้ว');
           setVisible();
           setReadOnly();
@@ -399,9 +422,11 @@ class _CancleGoodIssueState extends State<CancleGoodIssue> {
           return;
         }
       } else {
+        await showProgressLoading(true);
         showErrorDialog('Error ChkDoStatus');
       }
     } catch (e) {
+      await showProgressLoading(true);
       showErrorDialog('Error occured while ChkDoStatus');
     }
 
@@ -439,14 +464,17 @@ class _CancleGoodIssueState extends State<CancleGoodIssue> {
       );
 
       if (response.statusCode == 200) {
+        await showProgressLoading(true);
         showSuccessDialog('Cancle Pallet Successful!');
         setState(() {
           step = 1;
         });
       } else {
+        await showProgressLoading(true);
         showErrorDialog('Error UpdateLoadTracking');
       }
     } catch (e) {
+      await showProgressLoading(true);
       showErrorDialog('Error occured while UpdateLoadTracking');
     }
     setVisible();

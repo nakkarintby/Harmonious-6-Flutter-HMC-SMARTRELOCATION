@@ -333,6 +333,28 @@ class _ReprintState extends State<Reprint> {
     });
   }
 
+  Future<void> showProgressLoading(bool finish) async {
+    ProgressDialog pr = ProgressDialog(context);
+    pr = ProgressDialog(context,
+        type: ProgressDialogType.Normal, isDismissible: true, showLogs: true);
+    pr.style(
+        progress: 50.0,
+        message: "Please wait...",
+        progressWidget: Container(
+            padding: EdgeInsets.all(8.0), child: CircularProgressIndicator()),
+        maxProgress: 100.0,
+        progressTextStyle: TextStyle(
+            color: Colors.black, fontSize: 13.0, fontWeight: FontWeight.w400),
+        messageTextStyle: TextStyle(
+            color: Colors.black, fontSize: 19.0, fontWeight: FontWeight.w600));
+
+    if (finish == false) {
+      await pr.show();
+    } else {
+      await pr.hide();
+    }
+  }
+
   Future<void> scanQR() async {
     String barcodeScanRes;
     try {
@@ -353,6 +375,7 @@ class _ReprintState extends State<Reprint> {
   }
 
   Future<void> matNumberCheck() async {
+    await showProgressLoading(false);
     setState(() {
       matNumberController.text =
           'Moplen HP400K|60112405|272|750|KG|2017-08-08|';
@@ -400,11 +423,14 @@ class _ReprintState extends State<Reprint> {
     setColor();
     setText();
     setFocus();
+    await showProgressLoading(true);
   }
 
   Future<void> submitStep() async {
+    await showProgressLoading(false);
     if (haveMOG) {
       if (labelQtyController.text == '' || mogController.text == '') {
+        await showProgressLoading(true);
         showErrorDialog('Please Enter Data');
         setVisible();
         setReadOnly();
@@ -415,6 +441,7 @@ class _ReprintState extends State<Reprint> {
       }
     } else {
       if (labelQtyController.text == '') {
+        await showProgressLoading(true);
         showErrorDialog('Please Enter Data');
         setVisible();
         setReadOnly();
@@ -477,11 +504,13 @@ class _ReprintState extends State<Reprint> {
       );
 
       if (response.statusCode == 200) {
+        await showProgressLoading(true);
         showSuccessDialog('Post Successful!');
         setState(() {
           step = 1;
         });
       } else {
+        await showProgressLoading(true);
         showErrorDialog('Error GenerateBarcode');
       }
       setVisible();
@@ -490,6 +519,7 @@ class _ReprintState extends State<Reprint> {
       setText();
       setFocus();
     } catch (e) {
+      await showProgressLoading(true);
       showErrorDialog('Error occured while GenerateBarcode');
     }
   }

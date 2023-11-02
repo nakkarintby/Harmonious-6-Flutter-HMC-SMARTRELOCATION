@@ -361,6 +361,7 @@ class _LoginState extends State<Login> {
   }
 
   Future<void> checkLogin() async {
+    await showProgressLoading(false);
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
 
@@ -394,11 +395,13 @@ class _LoginState extends State<Login> {
 
         await prefs.setString('token', result.accessToken!);
         await prefs.setString('username', result.user!.username);
+
         setState(() {
           usernameController.text = '';
           passwordController.text = '';
           _btnController.reset();
         });
+        await showProgressLoading(true);
         Navigator.pushReplacement(
             context, MaterialPageRoute(builder: (context) => MainScreen()));
       } else {
@@ -409,6 +412,7 @@ class _LoginState extends State<Login> {
           passwordController.text = '';
           _btnController.reset();
         });
+        await showProgressLoading(true);
         showErrorDialog('Username or Password Invalid.');
       }
     } catch (e) {
@@ -417,6 +421,7 @@ class _LoginState extends State<Login> {
         passwordController.text = '';
         _btnController.reset();
       });
+      await showProgressLoading(true);
       showErrorDialog('Error occured while checkLogin');
     }
   }
