@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:test/components/menu_list2.dart';
-import 'package:test/screens/cancle_good_issue.dart';
-import 'package:test/screens/good_issue.dart';
+import 'package:test/screens/transfer.dart';
+import 'package:test/screens/cancle.dart';
+import 'package:test/screens/goodIssue.dart';
+import 'package:giffy_dialog/giffy_dialog.dart';
+import 'package:test/screens/login.dart';
 import 'package:test/screens/reprint.dart';
 
 class Menu extends StatefulWidget {
@@ -18,6 +21,34 @@ class _MenuPageState extends State<Menu> {
     super.initState();
   }
 
+  void logoutDialog() {
+    showDialog(
+        context: context,
+        builder: (_) => AssetGiffyDialog(
+            image: Image.asset(
+              'assets/men_wearing_jacket.gif',
+              fit: BoxFit.cover,
+            ),
+            title: Text(
+              'LOGOUT',
+              style: TextStyle(fontSize: 22.0, fontWeight: FontWeight.w600),
+            ),
+            description: Text(
+              'Are your sure logout?',
+              textAlign: TextAlign.center,
+              style: TextStyle(),
+            ),
+            entryAnimation: EntryAnimation.RIGHT,
+            onOkButtonPressed: () {
+              Navigator.of(context, rootNavigator: true).pushReplacement(
+                  MaterialPageRoute(builder: (context) => Login()));
+            },
+            onCancelButtonPressed: () {
+              Navigator.of(context, rootNavigator: true).pop();
+              //Navigator.of(context).pop();
+            }));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -25,10 +56,10 @@ class _MenuPageState extends State<Menu> {
         constraints: BoxConstraints.expand(),
         decoration: BoxDecoration(
             image: new DecorationImage(
-          image: new AssetImage("assets/background.jpg"),
+          image: new AssetImage("assets/B2.jpg"),
           fit: BoxFit.cover,
           colorFilter: ColorFilter.mode(
-              Colors.white.withOpacity(0.5), BlendMode.dstATop),
+              Colors.white.withOpacity(0.75), BlendMode.dstATop),
         )),
         alignment: Alignment.center,
         child: SingleChildScrollView(
@@ -42,12 +73,27 @@ class _MenuPageState extends State<Menu> {
                   text: "GI",
                   imageIcon: Image.asset(
                     "assets/gi.png",
-                    width: 65,
-                    height: 55,
+                    width: 50,
+                    height: 50,
                   ),
                   press: () => {
                     Navigator.push(context,
                         MaterialPageRoute(builder: (context) => GoodIssue()))
+                  },
+                ),
+              ),
+               Visibility(
+                visible: containerVisible,
+                child: MenuList2(
+                  text: "TR",
+                  imageIcon: Image.asset(
+                    "assets/exchange.png",
+                    width: 50,
+                    height: 50,
+                  ),
+                  press: () => {
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) => Transfer()))
                   },
                 ),
               ),
@@ -57,14 +103,14 @@ class _MenuPageState extends State<Menu> {
                   text: "Cancle GI",
                   imageIcon: Image.asset(
                     "assets/cancelgi.png",
-                    width: 65,
-                    height: 55,
+                    width: 50,
+                    height: 50,
                   ),
                   press: () => {
                     Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => CancleGoodIssue()))
+                            builder: (context) => Cancle()))
                   },
                 ),
               ),
@@ -74,8 +120,8 @@ class _MenuPageState extends State<Menu> {
                   text: "Re-Print",
                   imageIcon: Image.asset(
                     "assets/canclesticker.png",
-                    width: 65,
-                    height: 55,
+                    width: 50,
+                    height: 50,
                   ),
                   press: () => {
                     Navigator.push(context,
@@ -83,6 +129,17 @@ class _MenuPageState extends State<Menu> {
                   },
                 ),
               ),
+              Visibility(
+                  visible: containerVisible,
+                  child: MenuList2(
+                    text: "Log Out",
+                    imageIcon: Image.asset(
+                      "assets/logout.png",
+                      width: 50,
+                      height: 50,
+                    ),
+                    press: () => {logoutDialog()},
+                  )),
             ],
           ),
         ),

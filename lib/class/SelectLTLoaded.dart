@@ -1,4 +1,4 @@
-class CreateLoadingTracking {
+class SelectLTLoaded {
   String? loadTrackingId;
   String? dono;
   String? planDate;
@@ -9,9 +9,14 @@ class CreateLoadingTracking {
   String? sloc;
   String? palletno;
   int? quantity;
+  bool? isSynData;
+  String? synTime;
   String? createdBy;
+  String? createdTime;
+  String? lastUpdatedBy;
+  String? lastUpdatedTime;
 
-  CreateLoadingTracking(
+  SelectLTLoaded(
       {this.loadTrackingId,
       this.dono,
       this.planDate,
@@ -22,9 +27,14 @@ class CreateLoadingTracking {
       this.sloc,
       this.palletno,
       this.quantity,
-      this.createdBy});
+      this.isSynData,
+      this.synTime,
+      this.createdBy,
+      this.createdTime,
+      this.lastUpdatedBy,
+      this.lastUpdatedTime});
 
-  CreateLoadingTracking.fromJson(Map<String, dynamic> json) {
+  SelectLTLoaded.fromJson(Map<String, dynamic> json) {
     loadTrackingId = json['loadTrackingId'];
     dono = json['dono'];
     planDate = json['planDate'];
@@ -35,7 +45,12 @@ class CreateLoadingTracking {
     sloc = json['sloc'];
     palletno = json['palletno'];
     quantity = json['quantity'];
+    isSynData = json['isSynData'];
+    synTime = json['synTime'];
     createdBy = json['createdBy'];
+    createdTime = json['createdTime'];
+    lastUpdatedBy = json['lastUpdatedBy'];
+    lastUpdatedTime = json['lastUpdatedTime'];
   }
 
   Map<String, dynamic> toJson() {
@@ -50,7 +65,12 @@ class CreateLoadingTracking {
     data['sloc'] = this.sloc;
     data['palletno'] = this.palletno;
     data['quantity'] = this.quantity;
+    data['isSynData'] = this.isSynData;
+    data['synTime'] = this.synTime;
     data['createdBy'] = this.createdBy;
+    data['createdTime'] = this.createdTime;
+    data['lastUpdatedBy'] = this.lastUpdatedBy;
+    data['lastUpdatedTime'] = this.lastUpdatedTime;
     return data;
   }
 }

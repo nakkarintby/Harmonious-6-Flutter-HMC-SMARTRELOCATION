@@ -1,4 +1,3 @@
-import 'package:test/screens/main_screen.dart';
 import 'package:test/screens/login.dart';
 import 'package:flutter/widgets.dart';
 
@@ -6,5 +5,4 @@ import 'package:flutter/widgets.dart';
 // All our routes will be available here
 final Map<String, WidgetBuilder> routes = {
   Login.routeName: (context) => Login(),
-  MainScreen.routeName: (context) => MainScreen(),
 };

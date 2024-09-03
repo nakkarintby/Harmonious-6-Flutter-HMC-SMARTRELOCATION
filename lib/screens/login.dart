@@ -3,12 +3,12 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:progress_dialog/progress_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:test/class/resultlogin.dart';
-import 'package:test/class/user.dart';
-import 'package:test/screens/main_screen.dart';
 import 'package:rounded_loading_button/rounded_loading_button.dart';
 import 'dart:async';
 import 'package:http/http.dart' as http;
+import 'package:test/class/Login.dart';
+import 'package:test/class/user.dart';
+import 'package:test/screens/menu.dart';
 
 class Login extends StatefulWidget {
   static String routeName = "/login";
@@ -28,13 +28,15 @@ class _LoginState extends State<Login> {
   String version = '1.0';
   String urlDownload = '';
   late Timer timer;
+  String username = '';
+  String password = '';
 
   @override
   void initState() {
     super.initState();
     setState(() {
       version = '1.0';
-      configs = 'selene.hms-cloud.com:8882';
+      configs = '192.168.1.49:8084';
     });
     setSharedPrefs();
   }
@@ -46,7 +48,7 @@ class _LoginState extends State<Login> {
     if ((checkConfigsPrefs)) {
       configs = prefs.getString('configs')!;
     } else {
-      await prefs.setString('configs', 'selene.hms-cloud.com:8882');
+      await prefs.setString('configs', '192.168.1.49:8084');
       configs = prefs.getString('configs')!;
     }
   }
@@ -55,7 +57,7 @@ class _LoginState extends State<Login> {
     Size size = MediaQuery.of(context).size;
     return Container(
       width: double.infinity,
-      height: size.height / 12,
+      height: size.height / 10,
       child: Stack(
         alignment: Alignment.center,
         children: <Widget>[
@@ -71,6 +73,7 @@ class _LoginState extends State<Login> {
                 color: Colors.white,
               ),
               style: ElevatedButton.styleFrom(
+                primary: Colors.teal[300],
                 shape: CircleBorder(),
                 padding: EdgeInsets.all(10),
               ),
@@ -83,8 +86,8 @@ class _LoginState extends State<Login> {
 
   Widget _titleWidget() {
     return Container(
-      height: MediaQuery.of(context).size.height * 0.24,
-      width: MediaQuery.of(context).size.width * 1.2,
+      height: MediaQuery.of(context).size.height * 0.2,
+      width: MediaQuery.of(context).size.width * 1,
       child: Stack(
         alignment: Alignment.center,
         children: <Widget>[
@@ -112,13 +115,13 @@ class _LoginState extends State<Login> {
   Widget _LoginButtonWidget() {
     return Container(
         width: MediaQuery.of(context).size.width / 1.5,
-        height: 64,
+        height: 56,
         padding: EdgeInsets.symmetric(vertical: 1),
         alignment: Alignment.center,
         margin: EdgeInsets.symmetric(horizontal: 2, vertical: 2),
         child: RoundedLoadingButton(
           height: MediaQuery.of(context).size.height / 2,
-          color: Colors.blue,
+          color: Colors.teal[300],
           successColor: Colors.white,
           controller: _btnController,
           onPressed: () => checkLogin(),
@@ -133,7 +136,7 @@ class _LoginState extends State<Login> {
     Size size = MediaQuery.of(context).size;
     return Container(
       width: double.infinity,
-      height: size.height / 8,
+      height: size.height / 4,
       child: Stack(
         alignment: Alignment.center,
         children: <Widget>[
@@ -142,12 +145,30 @@ class _LoginState extends State<Login> {
             child: Image.asset("assets/hmslogo.png", width: size.width * 0.38),
           ),
           Positioned(
+            right: MediaQuery.of(context).size.width / 6,
+            child: ElevatedButton(
+              onPressed: () {
+                editConfigs();
+              },
+              child: const Icon(
+                Icons.settings,
+                size: 20,
+                color: Colors.white,
+              ),
+              style: ElevatedButton.styleFrom(
+                primary: Colors.teal[300],
+                shape: CircleBorder(),
+                padding: EdgeInsets.all(10),
+              ),
+            ),
+          ),
+          Positioned(
             right: MediaQuery.of(context).size.width / 80,
             child: ElevatedButton(
               onPressed: () {},
               child: Text('1.0'),
               style: ElevatedButton.styleFrom(
-                primary: Colors.red[400], //
+                primary: Colors.teal[300], //
                 shape: CircleBorder(),
                 padding: EdgeInsets.all(12),
               ),
@@ -368,13 +389,13 @@ class _LoginState extends State<Login> {
       if (prefs.getString('configs') != null) {
         configs = prefs.getString('configs')!;
       }
-      var url = Uri.parse('http://' + configs + '/API/api/User/Login');
+      var url = Uri.parse('http://' + configs + '/api/User/Login');
       var headers = {'Content-Type': 'application/json'};
 
       UserLogin user = new UserLogin();
       setState(() {
-        user.userName = 'U001';
-        user.password = 'password1';
+        user.userName = 'mobile1';
+        user.password = 'Qo94v0JpPaL59LS6U3xfEB4nVgc=';
       });
       var jsonBody = jsonEncode(user);
       final encoding = Encoding.getByName('utf-8');
@@ -388,13 +409,13 @@ class _LoginState extends State<Login> {
       var data = json.decode(response.body);
 
       if (response.statusCode == 200) {
-        late ResultLogin result;
+        late LoginClass resultLogin;
         setState(() {
-          result = ResultLogin.fromJson(data);
+          resultLogin = LoginClass.fromJson(data);
         });
 
-        await prefs.setString('token', result.accessToken!);
-        await prefs.setString('username', result.user!.username);
+        await prefs.setString('token', resultLogin.accessToken!);
+        await prefs.setString('username', resultLogin.user!.username);
 
         setState(() {
           usernameController.text = '';
@@ -403,7 +424,7 @@ class _LoginState extends State<Login> {
         });
         await showProgressLoading(true);
         Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (context) => MainScreen()));
+            context, MaterialPageRoute(builder: (context) => Menu()));
       } else {
         await prefs.setString('token', '');
         await prefs.setString('username', '');
@@ -437,8 +458,9 @@ class _LoginState extends State<Login> {
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              SizedBox(height: 30),
-              _editWidget(),
+              SizedBox(
+                height: MediaQuery.of(context).size.height / 12,
+              ),
               _titleWidget(),
               Container(
                 child: SafeArea(
@@ -464,7 +486,6 @@ class _LoginState extends State<Login> {
                 ),
               ),
               _LoginButtonWidget(),
-              SizedBox(height: 24),
               _bottomWidget(),
             ],
           ),

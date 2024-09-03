@@ -3,14 +3,16 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:test/class/createBarCode.dart';
-import 'package:test/class/resvalidatepalletitem.dart';
-import 'package:test/screens/history.dart';
+import 'package:test/class/createLoadTracking.dart';
+import 'package:test/class/resultSelectChkLoadedFull.dart';
+import 'package:test/screens/doDetailGI.dart';
+import 'package:test/screens/loadHistoryGI.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:flutter/services.dart';
 import 'package:input_with_keyboard_control/input_with_keyboard_control.dart';
 import 'package:progress_dialog/progress_dialog.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:crypto/crypto.dart';
 
 class Reprint extends StatefulWidget {
   const Reprint({Key? key}) : super(key: key);
@@ -21,35 +23,36 @@ class Reprint extends StatefulWidget {
 
 class _ReprintState extends State<Reprint> {
   final _formKey = GlobalKey<FormState>();
-
   TextEditingController matNumberController = TextEditingController();
   TextEditingController matDescController = TextEditingController();
   TextEditingController lotController = TextEditingController();
-  TextEditingController palletnumberController = TextEditingController();
-  TextEditingController packingQtyController = TextEditingController();
+  TextEditingController weightController = TextEditingController();
+  TextEditingController bagTypeController = TextEditingController();
+  TextEditingController productionDateController = TextEditingController();
+  TextEditingController tisiController = TextEditingController();
   TextEditingController labelQtyController = TextEditingController();
-  TextEditingController mogController = TextEditingController();
 
   bool matNumberVisible = false;
   bool detailVisible = false;
-  bool mogVisible = false;
   bool buttonVisible = false;
 
   bool matNumberReadonly = false;
   bool matDescReadonly = false;
   bool lotReadonly = false;
-  bool palletnumberReadonly = false;
-  bool packingQtyReadonly = false;
+  bool weightReadonly = false;
+  bool bagTypeReadonly = false;
+  bool productionDateReadonly = false;
+  bool tisiReadonly = false;
   bool labelQtyReadonly = false;
-  bool mogReadonly = false;
 
   Color matNumberColor = Color(0xFFFFFFFF);
   Color matDescColor = Color(0xFFFFFFFF);
   Color lotColor = Color(0xFFFFFFFF);
-  Color palletnumberColor = Color(0xFFFFFFFF);
-  Color packingQtyColor = Color(0xFFFFFFFF);
+  Color weightColor = Color(0xFFFFFFFF);
+  Color bagTypeColor = Color(0xFFFFFFFF);
+  Color productionDateColor = Color(0xFFFFFFFF);
+  Color tisiColor = Color(0xFFFFFFFF);
   Color labelQtyColor = Color(0xFFFFFFFF);
-  Color mogColor = Color(0xFFFFFFFF);
 
   bool backEnabled = false;
   bool submitEnabled = false;
@@ -57,28 +60,20 @@ class _ReprintState extends State<Reprint> {
   String matNumberInput = '';
   String matDescInput = '';
   String lotInput = '';
-  String palletnumberInput = '';
-  String packingQtyInput = '';
+  String weightInput = '';
+  String bagTypeInput = '';
+  String productionDateInput = '';
+  String tisiInput = '';
   String labelQtyInput = '';
-  String mogInput = '';
 
   int step = 1;
-  late List<FocusNode> focusNodes = List.generate(2, (index) => FocusNode());
+  late List<FocusNode> focusNodes = List.generate(3, (index) => FocusNode());
   late Timer timer;
 
   String configs = '';
   String deviceInfo = '';
   String accessToken = '';
   String username = '';
-  bool haveMOG = false;
-
-  var desc = '';
-  var batch = '';
-  var palletno = '';
-  var weight = '';
-  var bagType = '';
-  var unit = '';
-  var productionDate = '';
 
   @override
   void initState() {
@@ -87,7 +82,6 @@ class _ReprintState extends State<Reprint> {
     getSharedPrefs();
     setState(() {
       step = 1;
-      haveMOG = true;
     });
     setVisible();
     setReadOnly();
@@ -120,6 +114,7 @@ class _ReprintState extends State<Reprint> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       configs = prefs.getString('configs');
+      accessToken = prefs.getString('token');
     });
   }
 
@@ -128,25 +123,14 @@ class _ReprintState extends State<Reprint> {
       setState(() {
         matNumberVisible = true;
         detailVisible = false;
-        mogVisible = false;
         buttonVisible = false;
       });
     } else if (step == 2) {
-      if (!haveMOG) {
-        setState(() {
-          matNumberVisible = false;
-          detailVisible = true;
-          mogVisible = false;
-          buttonVisible = true;
-        });
-      } else {
-        setState(() {
-          matNumberVisible = false;
-          detailVisible = true;
-          mogVisible = true;
-          buttonVisible = true;
-        });
-      }
+      setState(() {
+        matNumberVisible = true;
+        detailVisible = true;
+        buttonVisible = true;
+      });
     }
   }
 
@@ -156,42 +140,29 @@ class _ReprintState extends State<Reprint> {
         matNumberReadonly = false;
         matDescReadonly = false;
         lotReadonly = false;
-        palletnumberReadonly = false;
-        packingQtyReadonly = false;
+        weightReadonly = false;
+        bagTypeReadonly = false;
+        productionDateReadonly = false;
+        tisiReadonly = false;
         labelQtyReadonly = false;
-        mogReadonly = false;
 
         backEnabled = false;
         submitEnabled = false;
       });
     } else if (step == 2) {
-      if (!haveMOG) {
-        setState(() {
-          matNumberReadonly = true;
-          matDescReadonly = true;
-          lotReadonly = true;
-          palletnumberReadonly = true;
-          packingQtyReadonly = true;
-          labelQtyReadonly = false;
-          mogReadonly = false;
+      setState(() {
+        matNumberReadonly = true;
+        matDescReadonly = true;
+        lotReadonly = true;
+        weightReadonly = true;
+        bagTypeReadonly = true;
+        productionDateReadonly = true;
+        tisiReadonly = true;
+        labelQtyReadonly = true;
 
-          backEnabled = true;
-          submitEnabled = true;
-        });
-      } else {
-        setState(() {
-          matNumberReadonly = true;
-          matDescReadonly = true;
-          lotReadonly = true;
-          palletnumberReadonly = true;
-          packingQtyReadonly = true;
-          labelQtyReadonly = false;
-          mogReadonly = false;
-
-          backEnabled = true;
-          submitEnabled = true;
-        });
-      }
+        backEnabled = true;
+        submitEnabled = true;
+      });
     }
   }
 
@@ -201,33 +172,23 @@ class _ReprintState extends State<Reprint> {
         matNumberColor = Color(0xFFFFFFFF);
         matDescColor = Color(0xFFFFFFFF);
         lotColor = Color(0xFFFFFFFF);
-        palletnumberColor = Color(0xFFFFFFFF);
-        packingQtyColor = Color(0xFFFFFFFF);
+        weightColor = Color(0xFFFFFFFF);
+        bagTypeColor = Color(0xFFFFFFFF);
+        productionDateColor = Color(0xFFFFFFFF);
+        tisiColor = Color(0xFFFFFFFF);
         labelQtyColor = Color(0xFFFFFFFF);
-        mogColor = Color(0xFFFFFFFF);
       });
     } else if (step == 2) {
-      if (!haveMOG) {
-        setState(() {
-          matNumberColor = Color(0xFFEEEEEE);
-          matDescColor = Color(0xFFEEEEEE);
-          lotColor = Color(0xFFEEEEEE);
-          palletnumberColor = Color(0xFFEEEEEE);
-          packingQtyColor = Color(0xFFEEEEEE);
-          labelQtyColor = Color(0xFFFFFFFF);
-          mogColor = Color(0xFFFFFFFF);
-        });
-      } else {
-        setState(() {
-          matNumberColor = Color(0xFFEEEEEE);
-          matDescColor = Color(0xFFEEEEEE);
-          lotColor = Color(0xFFEEEEEE);
-          palletnumberColor = Color(0xFFEEEEEE);
-          packingQtyColor = Color(0xFFEEEEEE);
-          labelQtyColor = Color(0xFFFFFFFF);
-          mogColor = Color(0xFFFFFFFF);
-        });
-      }
+      setState(() {
+        matNumberColor = Color(0xFFEEEEEE);
+        matDescColor = Color(0xFFEEEEEE);
+        lotColor = Color(0xFFEEEEEE);
+        weightColor = Color(0xFFEEEEEE);
+        bagTypeColor = Color(0xFFEEEEEE);
+        productionDateColor = Color(0xFFEEEEEE);
+        tisiColor = Color(0xFFEEEEEE);
+        labelQtyColor = Color(0xFFEEEEEE);
+      });
     }
   }
 
@@ -237,33 +198,23 @@ class _ReprintState extends State<Reprint> {
         matNumberController.text = '';
         matDescController.text = '';
         lotController.text = '';
-        palletnumberController.text = '';
-        packingQtyController.text = '';
+        weightController.text = '';
+        bagTypeController.text = '';
+        productionDateController.text = '';
+        tisiController.text = '';
         labelQtyController.text = '';
-        mogController.text = '';
       });
     } else if (step == 2) {
-      if (!haveMOG) {
-        setState(() {
-          matNumberController.text = matNumberInput;
-          matDescController.text = matDescInput;
-          lotController.text = lotInput;
-          palletnumberController.text = palletnumberInput;
-          packingQtyController.text = packingQtyInput;
-          labelQtyController.text = '';
-          mogController.text = '';
-        });
-      } else {
-        setState(() {
-          matNumberController.text = matNumberInput;
-          matDescController.text = matDescInput;
-          lotController.text = lotInput;
-          palletnumberController.text = palletnumberInput;
-          packingQtyController.text = packingQtyInput;
-          labelQtyController.text = '';
-          mogController.text = '';
-        });
-      }
+      setState(() {
+        matNumberController.text = matNumberInput;
+        matDescController.text = matDescInput;
+        lotController.text = lotInput;
+        weightController.text = weightInput;
+        bagTypeController.text = bagTypeInput;
+        productionDateController.text = productionDateInput;
+        tisiController.text = tisiInput;
+        labelQtyController.text = labelQtyInput;
+      });
     }
   }
 
@@ -363,7 +314,6 @@ class _ReprintState extends State<Reprint> {
     } on PlatformException {
       barcodeScanRes = 'Failed to get platform version.';
     }
-
     if (step == 1) {
       setState(() {
         matNumberController.text = barcodeScanRes;
@@ -378,150 +328,45 @@ class _ReprintState extends State<Reprint> {
     await showProgressLoading(false);
     setState(() {
       matNumberController.text =
-          'Moplen HP400K|60112405|272|750|KG|2017-08-08|';
+          'Moplen HP400K|60112405|998|750|KG|08/08/2017|';
     });
 
     var split = matNumberController.text.split('|');
 
-    //setBagType
-    if (split.length == 6) {
-      setState(() {
-        bagType = 'LB';
-        haveMOG = false;
-        productionDate = '';
-        mogController.text = '';
-        labelQtyController.text = '';
-      });
-    } else if (split.length == 7) {
-      setState(() {
-        bagType = 'JB';
-        haveMOG = true;
-        productionDate = split[5];
-        mogController.text = '';
-        labelQtyController.text = '';
-      });
-    }
-
     setState(() {
-      desc = split[0];
-      batch = split[1];
-      palletno = split[2];
-      weight = split[3];
-      unit = split[4];
-    });
-
-    setState(() {
+      matNumberInput = '999999999';
+      matDescInput = split[0];
+      lotInput = split[1];
+      weightInput = '1500';
+      bagTypeInput = '1000';
+      productionDateInput = '01-01-66';
+      tisiInput = 'tisi';
+      labelQtyInput = '5000';
       step++;
-      matNumberInput = matNumberController.text;
-      matDescInput = desc;
-      lotInput = batch;
-      palletnumberInput = palletno;
-      packingQtyInput = weight;
     });
+
+    await showProgressLoading(true);
     setVisible();
     setReadOnly();
     setColor();
     setText();
     setFocus();
-    await showProgressLoading(true);
   }
 
   Future<void> submitStep() async {
     await showProgressLoading(false);
-    if (haveMOG) {
-      if (labelQtyController.text == '' || mogController.text == '') {
-        await showProgressLoading(true);
-        showErrorDialog('Please Enter Data');
-        setVisible();
-        setReadOnly();
-        setColor();
-        setText();
-        setFocus();
-        return;
-      }
-    } else {
-      if (labelQtyController.text == '') {
-        await showProgressLoading(true);
-        showErrorDialog('Please Enter Data');
-        setVisible();
-        setReadOnly();
-        setColor();
-        setText();
-        setFocus();
-        return;
-      }
-    }
 
-    //call GenerateBarcode API
-    try {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      if (prefs.getString('configs') != null) {
-        configs = prefs.getString('configs')!;
-      }
-      accessToken = prefs.getString('token')!;
-      username = prefs.getString('username')!;
+    await showProgressLoading(true);
+    showSuccessDialog('Post Successful!');
+    setState(() {
+      step = 1;
+    });
 
-      CreateBarCode createBC = new CreateBarCode();
-      setState(() {
-        labelQtyInput = labelQtyController.text;
-        mogInput = mogController.text;
-        createBC.bagType = '12'; //if user bagtype JB or LB post not successful
-        createBC.matNo = '1';
-        createBC.matDesc = desc;
-        createBC.batch = batch;
-        createBC.palletNo = palletnumberInput;
-        createBC.weight = int.parse(weight);
-        createBC.unit = unit;
-        createBC.productionDate = productionDate;
-        createBC.tisi = mogInput;
-        createBC.labelQty = int.parse(labelQtyInput);
-        createBC.user = username;
-      });
-
-      if (productionDate == '') {
-        setState(() {
-          createBC.productionDate = null;
-        });
-      }
-
-      var url =
-          Uri.parse('http://' + configs + '/API/api/Barcode/GenerateBarcode');
-
-      var headers = {
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-        "Authorization": "Bearer " + accessToken
-      };
-
-      final encoding = Encoding.getByName('utf-8');
-      var jsonBody = jsonEncode(createBC);
-
-      http.Response response = await http.post(
-        url,
-        headers: headers,
-        body: jsonBody,
-        encoding: encoding,
-      );
-
-      if (response.statusCode == 200) {
-        await showProgressLoading(true);
-        showSuccessDialog('Post Successful!');
-        setState(() {
-          step = 1;
-        });
-      } else {
-        await showProgressLoading(true);
-        showErrorDialog('Error GenerateBarcode');
-      }
-      setVisible();
-      setReadOnly();
-      setColor();
-      setText();
-      setFocus();
-    } catch (e) {
-      await showProgressLoading(true);
-      showErrorDialog('Error occured while GenerateBarcode');
-    }
+    setVisible();
+    setReadOnly();
+    setColor();
+    setText();
+    setFocus();
   }
 
   @override
@@ -554,7 +399,7 @@ class _ReprintState extends State<Reprint> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               SizedBox(
-                height: 28,
+                height: 24,
               ),
               Container(
                   padding: new EdgeInsets.only(
@@ -579,12 +424,12 @@ class _ReprintState extends State<Reprint> {
                           labelStyle: TextStyle(fontSize: 13),
                           border: OutlineInputBorder(),
                           isDense: true, // Added this
-                          contentPadding: EdgeInsets.all(16), //
+                          contentPadding: EdgeInsets.all(14), //
                         ),
                         controller: matNumberController,
                       ))),
               SizedBox(
-                height: 18,
+                height: 14,
               ),
               Container(
                   padding: new EdgeInsets.only(
@@ -607,12 +452,12 @@ class _ReprintState extends State<Reprint> {
                           labelStyle: TextStyle(fontSize: 13),
                           border: OutlineInputBorder(),
                           isDense: true, // Added this
-                          contentPadding: EdgeInsets.all(16), //
+                          contentPadding: EdgeInsets.all(14), //
                         ),
                         controller: matDescController,
                       ))),
               SizedBox(
-                height: 18,
+                height: 14,
               ),
               Container(
                   padding: new EdgeInsets.only(
@@ -635,12 +480,12 @@ class _ReprintState extends State<Reprint> {
                           labelStyle: TextStyle(fontSize: 13),
                           border: OutlineInputBorder(),
                           isDense: true, // Added this
-                          contentPadding: EdgeInsets.all(16), //
+                          contentPadding: EdgeInsets.all(14), //
                         ),
                         controller: lotController,
                       ))),
               SizedBox(
-                height: 18,
+                height: 14,
               ),
               Container(
                   padding: new EdgeInsets.only(
@@ -650,25 +495,25 @@ class _ReprintState extends State<Reprint> {
                       visible: detailVisible,
                       child: TextFormField(
                         //focusNode: focusNodes[0],
-                        readOnly: palletnumberReadonly,
+                        readOnly: weightReadonly,
                         textInputAction: TextInputAction.go,
                         style: TextStyle(fontSize: 13),
                         onFieldSubmitted: (value) {},
                         decoration: InputDecoration(
                           //icon: const Icon(Icons.person),
-                          fillColor: palletnumberColor,
+                          fillColor: weightColor,
                           filled: true,
-                          hintText: 'Enter Pallet No.',
-                          labelText: 'Pallet Number',
+                          hintText: 'Enter Weight',
+                          labelText: 'Weight',
                           labelStyle: TextStyle(fontSize: 13),
                           border: OutlineInputBorder(),
                           isDense: true, // Added this
-                          contentPadding: EdgeInsets.all(16), //
+                          contentPadding: EdgeInsets.all(14), //
                         ),
-                        controller: palletnumberController,
+                        controller: weightController,
                       ))),
               SizedBox(
-                height: 18,
+                height: 14,
               ),
               Container(
                   padding: new EdgeInsets.only(
@@ -678,53 +523,81 @@ class _ReprintState extends State<Reprint> {
                       visible: detailVisible,
                       child: TextFormField(
                         //focusNode: focusNodes[0],
-                        readOnly: packingQtyReadonly,
+                        readOnly: bagTypeReadonly,
                         textInputAction: TextInputAction.go,
                         style: TextStyle(fontSize: 13),
                         onFieldSubmitted: (value) {},
                         decoration: InputDecoration(
                           //icon: const Icon(Icons.person),
-                          fillColor: packingQtyColor,
+                          fillColor: bagTypeColor,
                           filled: true,
-                          hintText: 'Enter Packing Qty',
-                          labelText: 'Packing Qty',
+                          hintText: 'Enter BagType',
+                          labelText: 'BagType',
                           labelStyle: TextStyle(fontSize: 13),
                           border: OutlineInputBorder(),
                           isDense: true, // Added this
-                          contentPadding: EdgeInsets.all(16), //
+                          contentPadding: EdgeInsets.all(14), //
                         ),
-                        controller: packingQtyController,
+                        controller: bagTypeController,
                       ))),
               SizedBox(
-                height: 18,
+                height: 14,
               ),
               Container(
                   padding: new EdgeInsets.only(
                       left: MediaQuery.of(context).size.width / 5,
                       right: MediaQuery.of(context).size.width / 5),
                   child: Visibility(
-                      visible: mogVisible,
+                      visible: detailVisible,
                       child: TextFormField(
                         //focusNode: focusNodes[0],
-                        readOnly: mogReadonly,
+                        readOnly: productionDateReadonly,
                         textInputAction: TextInputAction.go,
                         style: TextStyle(fontSize: 13),
                         onFieldSubmitted: (value) {},
                         decoration: InputDecoration(
                           //icon: const Icon(Icons.person),
-                          fillColor: mogColor,
+                          fillColor: productionDateColor,
                           filled: true,
-                          hintText: 'Enter MOG',
-                          labelText: 'MOG',
+                          hintText: 'Enter Production Date',
+                          labelText: 'Production Date',
                           labelStyle: TextStyle(fontSize: 13),
                           border: OutlineInputBorder(),
                           isDense: true, // Added this
-                          contentPadding: EdgeInsets.all(16), //
+                          contentPadding: EdgeInsets.all(14), //
                         ),
-                        controller: mogController,
+                        controller: productionDateController,
                       ))),
               SizedBox(
-                height: 18,
+                height: 14,
+              ),
+              Container(
+                  padding: new EdgeInsets.only(
+                      left: MediaQuery.of(context).size.width / 5,
+                      right: MediaQuery.of(context).size.width / 5),
+                  child: Visibility(
+                      visible: detailVisible,
+                      child: TextFormField(
+                        //focusNode: focusNodes[0],
+                        readOnly: tisiReadonly,
+                        textInputAction: TextInputAction.go,
+                        style: TextStyle(fontSize: 13),
+                        onFieldSubmitted: (value) {},
+                        decoration: InputDecoration(
+                          //icon: const Icon(Icons.person),
+                          fillColor: tisiColor,
+                          filled: true,
+                          hintText: 'Enter Tisi',
+                          labelText: 'Tisi',
+                          labelStyle: TextStyle(fontSize: 13),
+                          border: OutlineInputBorder(),
+                          isDense: true, // Added this
+                          contentPadding: EdgeInsets.all(14), //
+                        ),
+                        controller: tisiController,
+                      ))),
+              SizedBox(
+                height: 14,
               ),
               Container(
                   padding: new EdgeInsets.only(
@@ -742,17 +615,17 @@ class _ReprintState extends State<Reprint> {
                           //icon: const Icon(Icons.person),
                           fillColor: labelQtyColor,
                           filled: true,
-                          hintText: 'Enter Label Qty',
-                          labelText: 'Label Qty',
+                          hintText: 'Enter LabelQty',
+                          labelText: 'LabelQty',
                           labelStyle: TextStyle(fontSize: 13),
                           border: OutlineInputBorder(),
                           isDense: true, // Added this
-                          contentPadding: EdgeInsets.all(16), //
+                          contentPadding: EdgeInsets.all(14), //
                         ),
                         controller: labelQtyController,
                       ))),
               SizedBox(
-                height: 18,
+                height: 14,
               ),
               Visibility(
                   visible: buttonVisible,
@@ -765,7 +638,7 @@ class _ReprintState extends State<Reprint> {
                           width: 70.0,
                           height: 40.0,
                           child: new RaisedButton(
-                            color: Colors.blue,
+                            color: Colors.red,
                             child: const Text('Back',
                                 style: TextStyle(
                                   color: Colors.white,
@@ -776,9 +649,6 @@ class _ReprintState extends State<Reprint> {
                                   }
                                 : null,
                           ),
-                        ),
-                        SizedBox(
-                          width: MediaQuery.of(context).size.width / 8,
                         ),
                         Container(
                           width: 70.0,
@@ -791,8 +661,8 @@ class _ReprintState extends State<Reprint> {
                                   color: Colors.white,
                                 )),
                             onPressed: submitEnabled
-                                ? () async {
-                                    await submitStep();
+                                ? () {
+                                    submitStep();
                                     /*Scaffold.of(context).showSnackBar(
                                   SnackBar(content: Text('Post Complete')));*/
                                   }

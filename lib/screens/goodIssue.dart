@@ -3,73 +3,92 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:test/class/DeliveryOrderDOValidate.dart';
+import 'package:test/class/SelectChkLoadedFull.dart';
+import 'package:test/class/createLoadTracking.dart';
+import 'package:test/class/resultSelectChkLoadedFull.dart';
+import 'package:test/screens/doDetailGI.dart';
+import 'package:test/screens/loadHistoryGI.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:flutter/services.dart';
 import 'package:input_with_keyboard_control/input_with_keyboard_control.dart';
 import 'package:progress_dialog/progress_dialog.dart';
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:test/class/loadTrackingResult.dart';
+import 'package:crypto/crypto.dart';
 
-class CancleGoodIssue extends StatefulWidget {
-  const CancleGoodIssue({Key? key}) : super(key: key);
+class GoodIssue extends StatefulWidget {
+  const GoodIssue({Key? key}) : super(key: key);
 
   @override
-  _CancleGoodIssueState createState() => _CancleGoodIssueState();
+  _GoodIssueState createState() => _GoodIssueState();
 }
 
-class _CancleGoodIssueState extends State<CancleGoodIssue> {
+class _GoodIssueState extends State<GoodIssue> {
   final _formKey = GlobalKey<FormState>();
-
+  TextEditingController documentNumberController = TextEditingController();
   TextEditingController matNumberController = TextEditingController();
   TextEditingController matDescController = TextEditingController();
   TextEditingController lotController = TextEditingController();
   TextEditingController palletnumberController = TextEditingController();
-  TextEditingController packingQtyController = TextEditingController();
-  TextEditingController documentNumberController = TextEditingController();
+  TextEditingController pickingQtyController = TextEditingController();
+  TextEditingController remainQtyController = TextEditingController();
 
+  bool documentNumberVisible = false;
   bool matNumberVisible = false;
   bool detailVisible = false;
   bool buttonVisible = false;
 
+  bool documentNumberReadonly = false;
   bool matNumberReadonly = false;
   bool matDescReadonly = false;
   bool lotReadonly = false;
   bool palletnumberReadonly = false;
-  bool packingQtyReadonly = false;
-  bool documentNumberReadonly = false;
+  bool pickingQtyReadonly = false;
+  bool remainQtyReadonly = false;
 
+  Color documentNumberColor = Color(0xFFFFFFFF);
   Color matNumberColor = Color(0xFFFFFFFF);
   Color matDescColor = Color(0xFFFFFFFF);
   Color lotColor = Color(0xFFFFFFFF);
   Color palletnumberColor = Color(0xFFFFFFFF);
-  Color packingQtyColor = Color(0xFFFFFFFF);
-  Color documentNumberColor = Color(0xFFFFFFFF);
+  Color pickingQtyColor = Color(0xFFFFFFFF);
+  Color remainQtyColor = Color(0xFFFFFFFF);
 
   bool backEnabled = false;
+  bool historyEnabled = false;
+  bool detailEnabled = false;
   bool submitEnabled = false;
 
+  String documentNumberInput = '';
+  String plandate = '';
   String matNumberInput = '';
-  String matDescInput = '';
+  String matDescLabelInput = '';
   String lotInput = '';
   String palletnumberInput = '';
-  String packingQtyInput = '';
-  String documentNumberInput = '';
+  String pickingQtyInput = '';
+  String remainQtyInput = '';
 
   int step = 1;
-  late List<FocusNode> focusNodes = List.generate(2, (index) => FocusNode());
+  late List<FocusNode> focusNodes = List.generate(3, (index) => FocusNode());
   late Timer timer;
 
   String configs = '';
-  String accessToken = '';
   String deviceInfo = '';
+  String accessToken = '';
+  String username = '';
 
-  var desc = '';
-  var batch = '';
-  var palletno = '';
-  var weight = '';
-  var username = '';
+  late DeliveryOrderDOValidate resultDeliveryOrderDOValidate =
+      DeliveryOrderDOValidate();
 
-  LoadTrackingResult result = new LoadTrackingResult();
+  late SelectChkLoadedFull resultSelectChkLoadedFull = SelectChkLoadedFull();
+
+  var qtyLoaded = 0;
+  var orderQty = 0;
+  var remainQty = 0;
+  var pickingQty = 0;
+  String sloc = '';
+  int sequence = 0;
+  DeliveryOrder checkResultDOValidate = DeliveryOrder();
 
   @override
   void initState() {
@@ -110,18 +129,28 @@ class _CancleGoodIssueState extends State<CancleGoodIssue> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       configs = prefs.getString('configs');
+      accessToken = prefs.getString('token');
     });
   }
 
   void setVisible() {
     if (step == 1) {
       setState(() {
-        matNumberVisible = true;
+        documentNumberVisible = true;
+        matNumberVisible = false;
         detailVisible = false;
         buttonVisible = false;
       });
     } else if (step == 2) {
       setState(() {
+        documentNumberVisible = true;
+        matNumberVisible = true;
+        detailVisible = false;
+        buttonVisible = true;
+      });
+    } else if (step == 3) {
+      setState(() {
+        documentNumberVisible = true;
         matNumberVisible = true;
         detailVisible = true;
         buttonVisible = true;
@@ -132,26 +161,47 @@ class _CancleGoodIssueState extends State<CancleGoodIssue> {
   void setReadOnly() {
     if (step == 1) {
       setState(() {
+        documentNumberReadonly = false;
         matNumberReadonly = false;
         matDescReadonly = false;
         lotReadonly = false;
         palletnumberReadonly = false;
-        packingQtyReadonly = false;
-        documentNumberReadonly = false;
+        pickingQtyReadonly = false;
+        remainQtyReadonly = false;
 
         backEnabled = false;
+        historyEnabled = false;
+        detailEnabled = false;
         submitEnabled = false;
       });
     } else if (step == 2) {
       setState(() {
+        documentNumberReadonly = true;
+        matNumberReadonly = false;
+        matDescReadonly = false;
+        lotReadonly = false;
+        palletnumberReadonly = false;
+        pickingQtyReadonly = false;
+        remainQtyReadonly = false;
+
+        backEnabled = true;
+        historyEnabled = false;
+        detailEnabled = false;
+        submitEnabled = false;
+      });
+    } else if (step == 3) {
+      setState(() {
+        documentNumberReadonly = true;
         matNumberReadonly = true;
         matDescReadonly = true;
         lotReadonly = true;
         palletnumberReadonly = true;
-        packingQtyReadonly = true;
-        documentNumberReadonly = true;
+        pickingQtyReadonly = true;
+        remainQtyReadonly = true;
 
         backEnabled = true;
+        historyEnabled = true;
+        detailEnabled = true;
         submitEnabled = true;
       });
     }
@@ -160,21 +210,33 @@ class _CancleGoodIssueState extends State<CancleGoodIssue> {
   void setColor() {
     if (step == 1) {
       setState(() {
+        documentNumberColor = Color(0xFFFFFFFF);
         matNumberColor = Color(0xFFFFFFFF);
         matDescColor = Color(0xFFFFFFFF);
         lotColor = Color(0xFFFFFFFF);
         palletnumberColor = Color(0xFFFFFFFF);
-        packingQtyColor = Color(0xFFFFFFFF);
-        documentNumberColor = Color(0xFFFFFFFF);
+        pickingQtyColor = Color(0xFFFFFFFF);
+        remainQtyColor = Color(0xFFFFFFFF);
       });
     } else if (step == 2) {
       setState(() {
+        documentNumberColor = Color(0xFFEEEEEE);
+        matNumberColor = Color(0xFFFFFFFF);
+        matDescColor = Color(0xFFFFFFFF);
+        lotColor = Color(0xFFFFFFFF);
+        palletnumberColor = Color(0xFFFFFFFF);
+        pickingQtyColor = Color(0xFFFFFFFF);
+        remainQtyColor = Color(0xFFFFFFFF);
+      });
+    } else if (step == 3) {
+      setState(() {
+        documentNumberColor = Color(0xFFEEEEEE);
         matNumberColor = Color(0xFFEEEEEE);
         matDescColor = Color(0xFFEEEEEE);
         lotColor = Color(0xFFEEEEEE);
         palletnumberColor = Color(0xFFEEEEEE);
-        packingQtyColor = Color(0xFFEEEEEE);
-        documentNumberColor = Color(0xFFEEEEEE);
+        pickingQtyColor = Color(0xFFEEEEEE);
+        remainQtyColor = Color(0xFFEEEEEE);
       });
     }
   }
@@ -182,21 +244,33 @@ class _CancleGoodIssueState extends State<CancleGoodIssue> {
   void setText() {
     if (step == 1) {
       setState(() {
+        documentNumberController.text = '';
         matNumberController.text = '';
         matDescController.text = '';
         lotController.text = '';
         palletnumberController.text = '';
-        packingQtyController.text = '';
-        documentNumberController.text = '';
+        pickingQtyController.text = '';
+        remainQtyController.text = '';
       });
     } else if (step == 2) {
       setState(() {
+        documentNumberController.text = documentNumberInput;
+        matNumberController.text = '';
+        matDescController.text = '';
+        lotController.text = '';
+        palletnumberController.text = '';
+        pickingQtyController.text = '';
+        remainQtyController.text = '';
+      });
+    } else if (step == 3) {
+      setState(() {
+        documentNumberController.text = documentNumberInput;
         matNumberController.text = matNumberInput;
-        matDescController.text = matDescInput;
+        matDescController.text = matDescLabelInput;
         lotController.text = lotInput;
         palletnumberController.text = palletnumberInput;
-        packingQtyController.text = packingQtyInput;
-        documentNumberController.text = documentNumberInput;
+        pickingQtyController.text = pickingQtyInput;
+        remainQtyController.text = remainQtyInput;
       });
     }
   }
@@ -208,6 +282,9 @@ class _CancleGoodIssueState extends State<CancleGoodIssue> {
     } else if (step == 2) {
       Future.delayed(Duration(milliseconds: 100))
           .then((_) => FocusScope.of(context).requestFocus(focusNodes[1]));
+    } else if (step == 3) {
+      Future.delayed(Duration(milliseconds: 100))
+          .then((_) => FocusScope.of(context).requestFocus(focusNodes[2]));
     }
   }
 
@@ -300,6 +377,11 @@ class _CancleGoodIssueState extends State<CancleGoodIssue> {
 
     if (step == 1) {
       setState(() {
+        documentNumberController.text = barcodeScanRes;
+      });
+      documentNumberCheck();
+    } else if (step == 2) {
+      setState(() {
         matNumberController.text = barcodeScanRes;
       });
       matNumberCheck();
@@ -308,23 +390,17 @@ class _CancleGoodIssueState extends State<CancleGoodIssue> {
     }
   }
 
-  Future<void> matNumberCheck() async {
+  Future<void> documentNumberCheck() async {
     await showProgressLoading(false);
-    setState(() {
-      matNumberController.text =
-          'Moplen HP400K|60112405|998|750|KG|08/08/2017|';
-    });
 
-    var split = matNumberController.text.split('|');
+    var split = documentNumberController.text.split('|');
 
     setState(() {
-      desc = split[0];
-      batch = split[1];
-      palletno = split[2];
-      weight = split[3];
+      documentNumberInput = split[0];
+      plandate = split[1];
     });
 
-    //call SelectLTByBatchPalletQTY api
+    //api/DeliveryOrder/DOValidate
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       if (prefs.getString('configs') != null) {
@@ -334,12 +410,10 @@ class _CancleGoodIssueState extends State<CancleGoodIssue> {
 
       var url = Uri.parse('http://' +
           configs +
-          '/API/api/LoadTracking/SelectLTByBatchPalletQTY/' +
-          batch +
-          '/' +
-          palletno +
-          '/' +
-          weight);
+          '/api/DeliveryOrder/DOValidate?dono=' +
+          documentNumberInput +
+          '&plandate=' +
+          plandate);
 
       var headers = {
         "Content-Type": "application/json",
@@ -349,28 +423,32 @@ class _CancleGoodIssueState extends State<CancleGoodIssue> {
 
       http.Response response = await http.get(url, headers: headers);
 
+      var data = json.decode(response.body);
+
       if (response.statusCode == 200) {
         setState(() {
-          result = LoadTrackingResult.fromJson(json.decode(response.body));
+          resultDeliveryOrderDOValidate =
+              DeliveryOrderDOValidate.fromJson(data);
+        });
+
+        //check validate result api
+        if (resultDeliveryOrderDOValidate.result! == false) {
+          await showProgressLoading(true);
+          showErrorDialog(resultDeliveryOrderDOValidate.message!);
+          return;
+        }
+
+        setState(() {
           step++;
-          matNumberInput = result.matno!;
-          matDescInput = desc;
-          lotInput = result.batch!;
-          palletnumberInput = result.palletno!;
-          packingQtyInput = result.quantity!.toString();
-          documentNumberInput = result.dono!;
         });
         await showProgressLoading(true);
-      } else if (response.statusCode == 204) {
-        await showProgressLoading(true);
-        showErrorDialog('สินค้าพาเลทนี้ยังไม่ถูกสแกน');
       } else {
         await showProgressLoading(true);
-        showErrorDialog('Error matNumberCheck');
+        showErrorDialog('Error DOValidate');
       }
     } catch (e) {
       await showProgressLoading(true);
-      showErrorDialog('Error occured while matNumberCheck');
+      showErrorDialog('Error occured while DOValidate');
     }
     setVisible();
     setReadOnly();
@@ -379,23 +457,66 @@ class _CancleGoodIssueState extends State<CancleGoodIssue> {
     setFocus();
   }
 
-  Future<void> submitStep() async {
+  Future<void> matNumberCheck() async {
     await showProgressLoading(false);
-    //call ChkDoStatus API
+
+    var split = matNumberController.text.split('|');
+
+    setState(() {
+      matDescLabelInput = split[0];
+      matNumberInput = split[1];
+      lotInput = split[2];
+      palletnumberInput = split[3];
+      pickingQtyInput = split[4];
+      remainQtyInput = '';
+    });
+
+    //validate mat no
+    var checkResultDOValidate = resultDeliveryOrderDOValidate.deliveryOrder!
+        .firstWhere(
+            (e) =>
+                e.matDescLabel == matDescLabelInput &&
+                e.matno == matNumberInput &&
+                e.batch == lotInput,
+            orElse: () => DeliveryOrder());
+
+    if (checkResultDOValidate.deliveryOrderId == null) {
+      await showProgressLoading(true);
+      setState(() {
+        matNumberController.text = '';
+        matNumberInput = '';
+      });
+      showErrorDialog('MatNumber Invalid');
+      setVisible();
+      setReadOnly();
+      setColor();
+      setText();
+      setFocus();
+      return;
+    } else {
+      setState(() {
+        orderQty = checkResultDOValidate.quantity!;
+        sloc = checkResultDOValidate.sloc!;
+        sequence = checkResultDOValidate.sequence!;
+      });
+    }
+
+    //call api LoadTracking/SelectLTLoaded
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       if (prefs.getString('configs') != null) {
         configs = prefs.getString('configs')!;
       }
       accessToken = prefs.getString('token')!;
-      username = prefs.getString('username')!;
 
       var url = Uri.parse('http://' +
           configs +
-          '/API/api/DeliveryOrder/ChkDoStatus/' +
-          result.dono! +
+          '/api/LoadTracking/SelectLTLoaded/' +
+          matNumberInput +
           '/' +
-          result.planDate!);
+          lotInput +
+          '/' +
+          palletnumberInput);
 
       var headers = {
         "Content-Type": "application/json",
@@ -403,17 +524,146 @@ class _CancleGoodIssueState extends State<CancleGoodIssue> {
         "Authorization": "Bearer " + accessToken
       };
 
-      http.Response response = await http.get(
-        url,
-        headers: headers,
-      );
+      http.Response response = await http.get(url, headers: headers);
+
+      if (response.statusCode == 204) {
+        //next step
+      } else if (response.statusCode == 200) {
+        await showProgressLoading(true);
+        showErrorDialog('สินค้าพาเลทนี้ถูกสแกนแล้ว');
+        setState(() {
+          matNumberController.text = '';
+          matNumberInput = '';
+        });
+        setVisible();
+        setReadOnly();
+        setColor();
+        setText();
+        setFocus();
+        return;
+      } else {
+        await showProgressLoading(true);
+        showErrorDialog('Error SelectLTLoaded');
+        setState(() {
+          matNumberController.text = '';
+          matNumberInput = '';
+        });
+        setVisible();
+        setReadOnly();
+        setColor();
+        setText();
+        setFocus();
+        return;
+      }
+    } catch (e) {
+      await showProgressLoading(true);
+      setState(() {
+        matNumberController.text = '';
+        matNumberInput = '';
+      });
+      showErrorDialog('Error occured while SelectLTLoaded');
+    }
+
+    //call api LoadTracking/SelectLTQTYLoaded
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      if (prefs.getString('configs') != null) {
+        configs = prefs.getString('configs')!;
+      }
+      accessToken = prefs.getString('token')!;
+
+      var url = Uri.parse('http://' +
+          configs +
+          '/api/LoadTracking/SelectLTQTYLoaded/' +
+          documentNumberInput +
+          '/' +
+          plandate +
+          '/' +
+          matNumberInput +
+          '/' +
+          lotInput);
+
+      var headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Authorization": "Bearer " + accessToken
+      };
+
+      http.Response response = await http.get(url, headers: headers);
+      var data = json.decode(response.body);
+
+      if (response.statusCode == 200) {
+        setState(() {
+          qtyLoaded = data;
+          remainQty = orderQty - qtyLoaded;
+          remainQtyInput = remainQty.toString();
+          step++;
+        });
+        await showProgressLoading(true);
+        setVisible();
+        setReadOnly();
+        setColor();
+        setText();
+        setFocus();
+      } else {
+        await showProgressLoading(true);
+        showErrorDialog('Error SelectLTQTYLoaded');
+        setState(() {
+          matNumberController.text = '';
+          matNumberInput = '';
+        });
+        setVisible();
+        setReadOnly();
+        setColor();
+        setText();
+        setFocus();
+        return;
+      }
+    } catch (e) {
+      await showProgressLoading(true);
+      showErrorDialog('Error occured while SelectLTQTYLoaded');
+    }
+  }
+
+  Future<void> submitStep() async {
+    //call api LoadTracking/SelectChkLoadedFull
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      if (prefs.getString('configs') != null) {
+        configs = prefs.getString('configs')!;
+      }
+      accessToken = prefs.getString('token')!;
+
+      var url = Uri.parse('http://' +
+          configs +
+          '/api/LoadTracking/SelectChkLoadedFull/' +
+          documentNumberInput +
+          '/' +
+          plandate);
+
+      var headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Authorization": "Bearer " + accessToken
+      };
+
+      http.Response response = await http.get(url, headers: headers);
 
       var data = json.decode(response.body);
 
       if (response.statusCode == 200) {
-        if (data == 'A') {
+        setState(() {
+          resultSelectChkLoadedFull = SelectChkLoadedFull.fromJson(data);
+        });
+
+        int tmppicking = int.parse(pickingQtyInput);
+
+        if (tmppicking > remainQty) {
           await showProgressLoading(true);
-          showSuccessDialog('ข้อมูล DO ถูกอนุมัติเรียบร้อยแล้ว');
+          showErrorDialog('น้ำหนักเกิน Order');
+          setState(() {
+            step--;
+          });
           setVisible();
           setReadOnly();
           setColor();
@@ -423,14 +673,20 @@ class _CancleGoodIssueState extends State<CancleGoodIssue> {
         }
       } else {
         await showProgressLoading(true);
-        showErrorDialog('Error ChkDoStatus');
+        showErrorDialog('Error SelectChkLoadedFull');
+        setVisible();
+        setReadOnly();
+        setColor();
+        setText();
+        setFocus();
+        return;
       }
     } catch (e) {
       await showProgressLoading(true);
-      showErrorDialog('Error occured while ChkDoStatus');
+      showErrorDialog('Error occured while SelectChkLoadedFull');
     }
 
-    //call UpdateLoadTracking API
+    //call CreateLoadTrackingFromHH
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       if (prefs.getString('configs') != null) {
@@ -438,14 +694,23 @@ class _CancleGoodIssueState extends State<CancleGoodIssue> {
       }
       accessToken = prefs.getString('token')!;
       username = prefs.getString('username')!;
-      LoadTrackingResult tmp = LoadTrackingResult();
+
+      CreateLoadingTracking createLT = new CreateLoadingTracking();
       setState(() {
-        tmp = result;
-        tmp.isDeleted = true;
-        tmp.lastUpdatedBy = username;
+        createLT.dono = documentNumberInput;
+        createLT.planDate = plandate;
+        createLT.isDeleted = false;
+        createLT.matno = matNumberInput;
+        createLT.matDescLabel = matDescLabelInput;
+        createLT.batch = lotInput;
+        createLT.sloc = resultDeliveryOrderDOValidate.deliveryOrder![0].sloc!;
+        createLT.palletno = palletnumberInput;
+        createLT.quantity = int.parse(pickingQtyInput);
+        createLT.createdBy = username;
       });
 
-      var url = Uri.parse('http://' + configs + '/API/api/LoadTracking/Update');
+      var url = Uri.parse(
+          'http://' + configs + '/api/LoadTracking/CreateLoadTrackingFromHH');
 
       var headers = {
         "Content-Type": "application/json",
@@ -454,7 +719,7 @@ class _CancleGoodIssueState extends State<CancleGoodIssue> {
       };
 
       final encoding = Encoding.getByName('utf-8');
-      var jsonBody = jsonEncode(tmp);
+      var jsonBody = jsonEncode(createLT);
 
       http.Response response = await http.post(
         url,
@@ -465,23 +730,51 @@ class _CancleGoodIssueState extends State<CancleGoodIssue> {
 
       if (response.statusCode == 200) {
         await showProgressLoading(true);
-        showSuccessDialog('Cancle Pallet Successful!');
+        showSuccessDialog('Post Successful!');
         setState(() {
           step = 1;
         });
+        setVisible();
+        setReadOnly();
+        setColor();
+        setText();
+        setFocus();
+        return;
       } else {
         await showProgressLoading(true);
-        showErrorDialog('Error UpdateLoadTracking');
+        showErrorDialog('Error CreateLoadTrackingFromHH');
+        setVisible();
+        setReadOnly();
+        setColor();
+        setText();
+        setFocus();
+        return;
       }
     } catch (e) {
       await showProgressLoading(true);
-      showErrorDialog('Error occured while UpdateLoadTracking');
+      showErrorDialog('Error occured while CreateLoadTrackingFromHH');
+      setVisible();
+      setReadOnly();
+      setColor();
+      setText();
+      setFocus();
+      return;
     }
-    setVisible();
-    setReadOnly();
-    setColor();
-    setText();
-    setFocus();
+  }
+
+  Future<void> setLoadHistoryHeader() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('donoLoadHistoryGI', documentNumberInput);
+    await prefs.setString('plandateLoadHistoryGI', plandate);
+    await prefs.setString('matnoLoadHistoryGI', matNumberInput);
+    await prefs.setString('batchLoadHistoryGI', lotInput);
+  }
+
+  Future<void> setDoDetailHeader() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('donoDoDetailHistory', documentNumberInput);
+    await prefs.setString('plandateDoDetailHistory', plandate);
+    await prefs.setInt('sequenceDoDetailHistory', sequence);
   }
 
   @override
@@ -492,7 +785,7 @@ class _CancleGoodIssueState extends State<CancleGoodIssue> {
           leading: BackButton(color: Colors.black),
           backgroundColor: Colors.white,
           title: Text(
-            'Cancle GI',
+            'GI',
             maxLines: 3,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(color: Colors.black, fontSize: 18),
@@ -514,7 +807,37 @@ class _CancleGoodIssueState extends State<CancleGoodIssue> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               SizedBox(
-                height: 36,
+                height: 24,
+              ),
+              Container(
+                  padding: new EdgeInsets.only(
+                      left: MediaQuery.of(context).size.width / 5,
+                      right: MediaQuery.of(context).size.width / 5),
+                  child: Visibility(
+                      visible: documentNumberVisible,
+                      child: TextFormField(
+                        focusNode: focusNodes[0],
+                        readOnly: documentNumberReadonly,
+                        textInputAction: TextInputAction.go,
+                        style: TextStyle(fontSize: 13),
+                        onFieldSubmitted: (value) {
+                          documentNumberCheck();
+                        },
+                        decoration: InputDecoration(
+                          //icon: const Icon(Icons.person),
+                          fillColor: documentNumberColor,
+                          filled: true,
+                          hintText: 'Enter Document No.',
+                          labelText: 'Document Number',
+                          labelStyle: TextStyle(fontSize: 13),
+                          border: OutlineInputBorder(),
+                          isDense: true, // Added this
+                          contentPadding: EdgeInsets.all(14), //
+                        ),
+                        controller: documentNumberController,
+                      ))),
+              SizedBox(
+                height: 14,
               ),
               Container(
                   padding: new EdgeInsets.only(
@@ -523,7 +846,7 @@ class _CancleGoodIssueState extends State<CancleGoodIssue> {
                   child: Visibility(
                       visible: matNumberVisible,
                       child: TextFormField(
-                        focusNode: focusNodes[0],
+                        focusNode: focusNodes[1],
                         readOnly: matNumberReadonly,
                         textInputAction: TextInputAction.go,
                         style: TextStyle(fontSize: 13),
@@ -539,12 +862,12 @@ class _CancleGoodIssueState extends State<CancleGoodIssue> {
                           labelStyle: TextStyle(fontSize: 13),
                           border: OutlineInputBorder(),
                           isDense: true, // Added this
-                          contentPadding: EdgeInsets.all(18), //
+                          contentPadding: EdgeInsets.all(14), //
                         ),
                         controller: matNumberController,
                       ))),
               SizedBox(
-                height: 18,
+                height: 14,
               ),
               Container(
                   padding: new EdgeInsets.only(
@@ -567,12 +890,12 @@ class _CancleGoodIssueState extends State<CancleGoodIssue> {
                           labelStyle: TextStyle(fontSize: 13),
                           border: OutlineInputBorder(),
                           isDense: true, // Added this
-                          contentPadding: EdgeInsets.all(18), //
+                          contentPadding: EdgeInsets.all(14), //
                         ),
                         controller: matDescController,
                       ))),
               SizedBox(
-                height: 18,
+                height: 14,
               ),
               Container(
                   padding: new EdgeInsets.only(
@@ -595,12 +918,12 @@ class _CancleGoodIssueState extends State<CancleGoodIssue> {
                           labelStyle: TextStyle(fontSize: 13),
                           border: OutlineInputBorder(),
                           isDense: true, // Added this
-                          contentPadding: EdgeInsets.all(18), //
+                          contentPadding: EdgeInsets.all(14), //
                         ),
                         controller: lotController,
                       ))),
               SizedBox(
-                height: 18,
+                height: 14,
               ),
               Container(
                   padding: new EdgeInsets.only(
@@ -623,12 +946,12 @@ class _CancleGoodIssueState extends State<CancleGoodIssue> {
                           labelStyle: TextStyle(fontSize: 13),
                           border: OutlineInputBorder(),
                           isDense: true, // Added this
-                          contentPadding: EdgeInsets.all(18), //
+                          contentPadding: EdgeInsets.all(14), //
                         ),
                         controller: palletnumberController,
                       ))),
               SizedBox(
-                height: 18,
+                height: 14,
               ),
               Container(
                   padding: new EdgeInsets.only(
@@ -638,25 +961,25 @@ class _CancleGoodIssueState extends State<CancleGoodIssue> {
                       visible: detailVisible,
                       child: TextFormField(
                         //focusNode: focusNodes[0],
-                        readOnly: packingQtyReadonly,
+                        readOnly: pickingQtyReadonly,
                         textInputAction: TextInputAction.go,
                         style: TextStyle(fontSize: 13),
                         onFieldSubmitted: (value) {},
                         decoration: InputDecoration(
                           //icon: const Icon(Icons.person),
-                          fillColor: packingQtyColor,
+                          fillColor: pickingQtyColor,
                           filled: true,
-                          hintText: 'Enter Packing Qty',
-                          labelText: 'Packing Qty',
+                          hintText: 'Enter Order Qty',
+                          labelText: 'Picking Qty',
                           labelStyle: TextStyle(fontSize: 13),
                           border: OutlineInputBorder(),
                           isDense: true, // Added this
-                          contentPadding: EdgeInsets.all(18), //
+                          contentPadding: EdgeInsets.all(14), //
                         ),
-                        controller: packingQtyController,
+                        controller: pickingQtyController,
                       ))),
               SizedBox(
-                height: 18,
+                height: 14,
               ),
               Container(
                   padding: new EdgeInsets.only(
@@ -666,25 +989,25 @@ class _CancleGoodIssueState extends State<CancleGoodIssue> {
                       visible: detailVisible,
                       child: TextFormField(
                         //focusNode: focusNodes[0],
-                        readOnly: documentNumberReadonly,
+                        readOnly: remainQtyReadonly,
                         textInputAction: TextInputAction.go,
                         style: TextStyle(fontSize: 13),
                         onFieldSubmitted: (value) {},
                         decoration: InputDecoration(
                           //icon: const Icon(Icons.person),
-                          fillColor: documentNumberColor,
+                          fillColor: remainQtyColor,
                           filled: true,
-                          hintText: 'Enter Document No.',
-                          labelText: 'Document Number',
+                          hintText: 'Enter Remain Qty',
+                          labelText: 'Remain Qty',
                           labelStyle: TextStyle(fontSize: 13),
                           border: OutlineInputBorder(),
                           isDense: true, // Added this
-                          contentPadding: EdgeInsets.all(18), //
+                          contentPadding: EdgeInsets.all(14), //
                         ),
-                        controller: documentNumberController,
+                        controller: remainQtyController,
                       ))),
               SizedBox(
-                height: 18,
+                height: 14,
               ),
               Visibility(
                   visible: buttonVisible,
@@ -697,7 +1020,7 @@ class _CancleGoodIssueState extends State<CancleGoodIssue> {
                           width: 70.0,
                           height: 40.0,
                           child: new RaisedButton(
-                            color: Colors.blue,
+                            color: Colors.red,
                             child: const Text('Back',
                                 style: TextStyle(
                                   color: Colors.white,
@@ -709,22 +1032,60 @@ class _CancleGoodIssueState extends State<CancleGoodIssue> {
                                 : null,
                           ),
                         ),
-                        SizedBox(
-                          width: MediaQuery.of(context).size.width / 8,
+                        Container(
+                          width: 70.0,
+                          height: 40.0,
+                          child: new RaisedButton(
+                            color: Colors.blue,
+                            child: const Text('LHistory',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                )),
+                            onPressed: historyEnabled
+                                ? () async {
+                                    await setLoadHistoryHeader();
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) => HistoryGI()));
+                                  }
+                                : null,
+                          ),
                         ),
                         Container(
                           width: 70.0,
                           height: 40.0,
                           child: new RaisedButton(
-                            focusNode: focusNodes[1],
-                            color: step == 2 ? Colors.green : Colors.blue,
+                            color: Colors.blue,
+                            child: const Text('Detail',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                )),
+                            onPressed: detailEnabled
+                                ? () async {
+                                    await setDoDetailHeader();
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                DoDetailGI()));
+                                  }
+                                : null,
+                          ),
+                        ),
+                        Container(
+                          width: 70.0,
+                          height: 40.0,
+                          child: new RaisedButton(
+                            focusNode: focusNodes[2],
+                            color: step == 3 ? Colors.green : Colors.blue,
                             child: const Text('Submit',
                                 style: TextStyle(
                                   color: Colors.white,
                                 )),
                             onPressed: submitEnabled
-                                ? () async {
-                                    await submitStep();
+                                ? () {
+                                    submitStep();
                                     /*Scaffold.of(context).showSnackBar(
                                   SnackBar(content: Text('Post Complete')));*/
                                   }

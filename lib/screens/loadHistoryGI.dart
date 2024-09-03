@@ -1,31 +1,57 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:progress_dialog/progress_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:test/class/SelectLTLoadedHistList.dart';
 import 'package:test/class/listpallet.dart';
-import 'package:test/class/resvalidatepalletitem.dart';
+import 'package:flutter/services.dart';
 
-class History extends StatefulWidget {
+class HistoryGI extends StatefulWidget {
   @override
-  _HistoryState createState() => _HistoryState();
+  _HistoryGIState createState() => _HistoryGIState();
 }
 
-class _HistoryState extends State<History> {
-  List<ListPallet> list = [];
+class _HistoryGIState extends State<HistoryGI> {
+  List<SelectLTLoadedHistList> list = [];
   String configs = '';
   String accessToken = "";
   String dono = "";
   String plandate = "";
   String matno = "";
   String batch = "";
-  String matdesc = "";
   late Timer timer;
+
+  TextEditingController documentNumberController = TextEditingController();
+  TextEditingController lotController = TextEditingController();
+
+  bool documentNumberVisible = true;
+  bool lotVisible = true;
+  bool documentNumberReadonly = true;
+  bool lotReadonly = true;
+  Color documentNumberColor = Color(0xFFEEEEEE);
+  Color lotColor = Color(0xFFEEEEEE);
 
   @override
   void initState() {
     super.initState();
     getSharedPrefs();
+  }
+
+  Future<void> getSharedPrefs() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      configs = prefs.getString('configs');
+      accessToken = prefs.getString('token');
+      dono = prefs.getString('donoLoadHistoryGI');
+      plandate = prefs.getString('plandateLoadHistoryGI');
+      matno = prefs.getString('matnoLoadHistoryGI');
+      batch = prefs.getString('batchLoadHistoryGI');
+    });
+
+    await onload();
   }
 
   void showErrorDialog(String error) {
@@ -73,30 +99,39 @@ class _HistoryState extends State<History> {
     });
   }
 
-  Future<void> getSharedPrefs() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      configs = prefs.getString('configs');
-      dono = prefs.getString('dono');
-      plandate = prefs.getString('plandate');
-      matno = prefs.getString('matno');
-      batch = prefs.getString('batch');
-      matdesc = prefs.getString('matdesc');
-    });
-    await onload();
+  Future<void> showProgressLoading(bool finish) async {
+    ProgressDialog pr = ProgressDialog(context);
+    pr = ProgressDialog(context,
+        type: ProgressDialogType.Normal, isDismissible: true, showLogs: true);
+    pr.style(
+        progress: 50.0,
+        message: "Please wait...",
+        progressWidget: Container(
+            padding: EdgeInsets.all(8.0), child: CircularProgressIndicator()),
+        maxProgress: 100.0,
+        progressTextStyle: TextStyle(
+            color: Colors.black, fontSize: 13.0, fontWeight: FontWeight.w400),
+        messageTextStyle: TextStyle(
+            color: Colors.black, fontSize: 19.0, fontWeight: FontWeight.w600));
+
+    if (finish == false) {
+      await pr.show();
+    } else {
+      await pr.hide();
+    }
   }
 
   Future<void> onload() async {
-    try {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      if (prefs.getString('configs') != null) {
-        configs = prefs.getString('configs')!;
-      }
-      accessToken = prefs.getString('token')!;
+    await showProgressLoading(false);
+    setState(() {
+      documentNumberController.text = dono;
+      lotController.text = batch;
+    });
 
+    try {
       var url = Uri.parse('http://' +
           configs +
-          '/API/api/LoadTracking/SelectLTLoadedHistList/' +
+          '/api/LoadTracking/SelectLTLoadedHistList/' +
           dono +
           '/' +
           plandate +
@@ -112,23 +147,22 @@ class _HistoryState extends State<History> {
       };
 
       http.Response response = await http.get(url, headers: headers);
-
+      var data = json.decode(response.body);
+      
       if (response.statusCode == 200) {
         setState(() {
           list = (json.decode(response.body) as List)
-              .map((data) => ListPallet.fromJson(data))
+              .map((data) => SelectLTLoadedHistList.fromJson(data))
               .toList();
         });
-
-        if (list.length == 0) {
-          //MyWidget.showMyAlertDialog(context, "Error", "Data not found");
-          showErrorDialog('ไม่พบข้อมูลการ Load สินค้า ' + matdesc);
-        }
+        await showProgressLoading(true);
       } else {
-        showErrorDialog('Error SelectLTLoadedHistList');
+        await showProgressLoading(true);
+        showErrorDialog('ไม่พบข้อมูลสินค้า');
       }
     } catch (e) {
-      showErrorDialog('Error occured while SelectLTLoadedHistList');
+      await showProgressLoading(true);
+      showErrorDialog('Error occured while History');
     }
   }
 
@@ -165,11 +199,11 @@ class _HistoryState extends State<History> {
   List<DataRow> _createRows() {
     return list
         .map((list) => DataRow(
-                color: MaterialStateColor.resolveWith((states) {
-                  return list.quantity! % 2 == 0
-                      ? Colors.transparent
-                      : Colors.grey[200]!; //make tha magic!
-                }),
+                // color: MaterialStateColor.resolveWith((states) {
+                //   return int.parse(index) % 2 != 0
+                //       ? Colors.transparent
+                //       : Colors.grey[200]!; //make tha magic!
+                // }),
                 cells: [
                   DataCell(Container(
                       width: 160, //SET width
@@ -197,7 +231,7 @@ class _HistoryState extends State<History> {
           leading: BackButton(color: Colors.black),
           backgroundColor: Colors.white,
           title: Text(
-            'History',
+            'LoadHistory',
             maxLines: 3,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(color: Colors.black, fontSize: 18),
@@ -207,17 +241,69 @@ class _HistoryState extends State<History> {
             scrollDirection: Axis.vertical,
             child: Column(children: [
               SizedBox(height: 25),
+              Container(
+                  padding: new EdgeInsets.only(
+                      left: MediaQuery.of(context).size.width / 5,
+                      right: MediaQuery.of(context).size.width / 5),
+                  child: Visibility(
+                      visible: documentNumberVisible,
+                      child: TextFormField(
+                        readOnly: documentNumberReadonly,
+                        textInputAction: TextInputAction.go,
+                        style: TextStyle(fontSize: 13),
+                        onFieldSubmitted: (value) {},
+                        decoration: InputDecoration(
+                          //icon: const Icon(Icons.person),
+                          fillColor: documentNumberColor,
+                          filled: true,
+                          hintText: 'Enter Document No.',
+                          labelText: 'Document Number',
+                          labelStyle: TextStyle(fontSize: 13),
+                          border: OutlineInputBorder(),
+                          isDense: true, // Added this
+                          contentPadding: EdgeInsets.all(14), //
+                        ),
+                        controller: documentNumberController,
+                      ))),
+              SizedBox(
+                height: 14,
+              ),
+              Container(
+                  padding: new EdgeInsets.only(
+                      left: MediaQuery.of(context).size.width / 5,
+                      right: MediaQuery.of(context).size.width / 5),
+                  child: Visibility(
+                      visible: lotVisible,
+                      child: TextFormField(
+                        readOnly: lotReadonly,
+                        textInputAction: TextInputAction.go,
+                        style: TextStyle(fontSize: 13),
+                        onFieldSubmitted: (value) {},
+                        decoration: InputDecoration(
+                          //icon: const Icon(Icons.person),
+                          fillColor: lotColor,
+                          filled: true,
+                          hintText: 'Enter Lot No.',
+                          labelText: 'Lot Number',
+                          labelStyle: TextStyle(fontSize: 13),
+                          border: OutlineInputBorder(),
+                          isDense: true, // Added this
+                          contentPadding: EdgeInsets.all(14), //
+                        ),
+                        controller: lotController,
+                      ))),
+              SizedBox(height: 20),
               Center(
                   child: Container(
                 decoration:
                     BoxDecoration(border: Border.all(color: Colors.black)),
-                height: MediaQuery.of(context).size.height / 1.55,
+                height: MediaQuery.of(context).size.height / 2.05,
                 child: SingleChildScrollView(
                     child: Column(children: [
                   _createDataTable(),
                 ])),
               )),
-              SizedBox(height: 25),
+              SizedBox(height: 20),
               Container(
                 width: 100.0,
                 height: 45.0,
