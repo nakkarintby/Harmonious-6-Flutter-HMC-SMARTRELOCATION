@@ -6,8 +6,8 @@ import 'package:http/http.dart' as http;
 import 'package:progress_dialog/progress_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/services.dart';
-import 'package:test/class/ListAllHistoryGI.dart';
-import 'package:test/class/SelectDODetail.dart';
+import 'package:test/class/listAllHistoryGI.dart';
+import 'package:test/class/selectDODetail.dart';
 import 'package:test/screens/allHistoryGI.dart';
 
 class AllHistoryGI extends StatefulWidget {
@@ -147,12 +147,20 @@ class _AllHistoryGIState extends State<AllHistoryGI> {
         });
         await showProgressLoading(true);
       } else {
+        setState(() {
+          documentNumberController.text = '';
+        });
         await showProgressLoading(true);
         showErrorDialog('ไม่พบข้อมูลสินค้า');
+        return;
       }
     } catch (e) {
+      setState(() {
+        documentNumberController.text = '';
+      });
       await showProgressLoading(true);
       showErrorDialog('Error occured while History');
+      return;
     }
   }
 
@@ -169,7 +177,7 @@ class _AllHistoryGIState extends State<AllHistoryGI> {
 
   List<DataColumn> _createColumns() {
     return [
-       DataColumn(
+      DataColumn(
           label: Expanded(
               child: (Text('Mat',
                   softWrap: true,
@@ -210,7 +218,7 @@ class _AllHistoryGIState extends State<AllHistoryGI> {
                 // }),
                 cells: [
                   DataCell(Container(
-                      width: 70, //SET width
+                      width: 100, //SET width
                       child: Align(
                           alignment: Alignment.centerLeft,
                           child: Text(

@@ -6,7 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:rounded_loading_button/rounded_loading_button.dart';
 import 'dart:async';
 import 'package:http/http.dart' as http;
-import 'package:test/class/Login.dart';
+import 'package:test/class/login.dart';
 import 'package:test/class/user.dart';
 import 'package:test/screens/menu.dart';
 
@@ -24,7 +24,7 @@ class _LoginState extends State<Login> {
   TextEditingController configsController = TextEditingController();
   final RoundedLoadingButtonController _btnController =
       RoundedLoadingButtonController();
-  String configs = 'selene.hms-cloud.com:8882';
+  String configs = '192.168.1.49:8084';
   String version = '1.0';
   String urlDownload = '';
   late Timer timer;
@@ -393,9 +393,13 @@ class _LoginState extends State<Login> {
       var headers = {'Content-Type': 'application/json'};
 
       UserLogin user = new UserLogin();
+      // setState(() {
+      //   user.userName = 'mobile1';
+      //   user.password = 'Qo94v0JpPaL59LS6U3xfEB4nVgc=';
+      // });
       setState(() {
-        user.userName = 'mobile1';
-        user.password = 'Qo94v0JpPaL59LS6U3xfEB4nVgc=';
+        user.userName = usernameController.text;
+        user.password = passwordController.text;
       });
       var jsonBody = jsonEncode(user);
       final encoding = Encoding.getByName('utf-8');

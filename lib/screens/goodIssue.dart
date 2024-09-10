@@ -3,8 +3,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:test/class/DeliveryOrderDOValidate.dart';
-import 'package:test/class/SelectChkLoadedFull.dart';
+import 'package:test/class/deliveryOrderDOValidate.dart';
+import 'package:test/class/selectChkLoadedFull.dart';
 import 'package:test/class/createLoadTracking.dart';
 import 'package:test/class/resultSelectChkLoadedFull.dart';
 import 'package:test/screens/doDetailGI.dart';
@@ -433,8 +433,18 @@ class _GoodIssueState extends State<GoodIssue> {
 
         //check validate result api
         if (resultDeliveryOrderDOValidate.result! == false) {
+          setState(() {
+            documentNumberController.text = '';
+            documentNumberInput = '';
+            plandate = '';
+          });
           await showProgressLoading(true);
           showErrorDialog(resultDeliveryOrderDOValidate.message!);
+          setVisible();
+          setReadOnly();
+          setColor();
+          setText();
+          setFocus();
           return;
         }
 
@@ -442,19 +452,41 @@ class _GoodIssueState extends State<GoodIssue> {
           step++;
         });
         await showProgressLoading(true);
+        setVisible();
+        setReadOnly();
+        setColor();
+        setText();
+        setFocus();
       } else {
+        setState(() {
+          documentNumberController.text = '';
+          documentNumberInput = '';
+          plandate = '';
+        });
         await showProgressLoading(true);
         showErrorDialog('Error DOValidate');
+        setVisible();
+        setReadOnly();
+        setColor();
+        setText();
+        setFocus();
+        return;
       }
     } catch (e) {
+      setState(() {
+        documentNumberController.text = '';
+        documentNumberInput = '';
+        plandate = '';
+      });
       await showProgressLoading(true);
       showErrorDialog('Error occured while DOValidate');
+      setVisible();
+      setReadOnly();
+      setColor();
+      setText();
+      setFocus();
+      return;
     }
-    setVisible();
-    setReadOnly();
-    setColor();
-    setText();
-    setFocus();
   }
 
   Future<void> matNumberCheck() async {
@@ -481,11 +513,11 @@ class _GoodIssueState extends State<GoodIssue> {
             orElse: () => DeliveryOrder());
 
     if (checkResultDOValidate.deliveryOrderId == null) {
-      await showProgressLoading(true);
       setState(() {
         matNumberController.text = '';
         matNumberInput = '';
       });
+      await showProgressLoading(true);
       showErrorDialog('MatNumber Invalid');
       setVisible();
       setReadOnly();
@@ -529,12 +561,12 @@ class _GoodIssueState extends State<GoodIssue> {
       if (response.statusCode == 204) {
         //next step
       } else if (response.statusCode == 200) {
-        await showProgressLoading(true);
-        showErrorDialog('สินค้าพาเลทนี้ถูกสแกนแล้ว');
         setState(() {
           matNumberController.text = '';
           matNumberInput = '';
         });
+        await showProgressLoading(true);
+        showErrorDialog('สินค้าพาเลทนี้ถูกสแกนแล้ว');
         setVisible();
         setReadOnly();
         setColor();
@@ -542,12 +574,12 @@ class _GoodIssueState extends State<GoodIssue> {
         setFocus();
         return;
       } else {
-        await showProgressLoading(true);
-        showErrorDialog('Error SelectLTLoaded');
         setState(() {
           matNumberController.text = '';
           matNumberInput = '';
         });
+        await showProgressLoading(true);
+        showErrorDialog('Error SelectLTLoaded');
         setVisible();
         setReadOnly();
         setColor();
@@ -556,12 +588,18 @@ class _GoodIssueState extends State<GoodIssue> {
         return;
       }
     } catch (e) {
-      await showProgressLoading(true);
       setState(() {
         matNumberController.text = '';
         matNumberInput = '';
       });
+      await showProgressLoading(true);
       showErrorDialog('Error occured while SelectLTLoaded');
+      setVisible();
+      setReadOnly();
+      setColor();
+      setText();
+      setFocus();
+      return;
     }
 
     //call api LoadTracking/SelectLTQTYLoaded
@@ -606,12 +644,12 @@ class _GoodIssueState extends State<GoodIssue> {
         setText();
         setFocus();
       } else {
-        await showProgressLoading(true);
-        showErrorDialog('Error SelectLTQTYLoaded');
         setState(() {
           matNumberController.text = '';
           matNumberInput = '';
         });
+        await showProgressLoading(true);
+        showErrorDialog('Error SelectLTQTYLoaded');
         setVisible();
         setReadOnly();
         setColor();
@@ -620,12 +658,27 @@ class _GoodIssueState extends State<GoodIssue> {
         return;
       }
     } catch (e) {
+      setState(() {
+        matNumberController.text = '';
+        matNumberInput = '';
+      });
       await showProgressLoading(true);
       showErrorDialog('Error occured while SelectLTQTYLoaded');
+      setVisible();
+      setReadOnly();
+      setColor();
+      setText();
+      setFocus();
+      return;
     }
   }
 
   Future<void> submitStep() async {
+    setState(() {
+      submitEnabled = false;
+    });
+    await showProgressLoading(false);
+
     //call api LoadTracking/SelectChkLoadedFull
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -658,12 +711,13 @@ class _GoodIssueState extends State<GoodIssue> {
 
         int tmppicking = int.parse(pickingQtyInput);
 
+        //validate qty
         if (tmppicking > remainQty) {
-          await showProgressLoading(true);
-          showErrorDialog('น้ำหนักเกิน Order');
           setState(() {
             step--;
           });
+          await showProgressLoading(true);
+          showErrorDialog('น้ำหนักเกิน Order');
           setVisible();
           setReadOnly();
           setColor();
@@ -671,6 +725,8 @@ class _GoodIssueState extends State<GoodIssue> {
           setFocus();
           return;
         }
+
+        //next step
       } else {
         await showProgressLoading(true);
         showErrorDialog('Error SelectChkLoadedFull');
@@ -684,6 +740,12 @@ class _GoodIssueState extends State<GoodIssue> {
     } catch (e) {
       await showProgressLoading(true);
       showErrorDialog('Error occured while SelectChkLoadedFull');
+      setVisible();
+      setReadOnly();
+      setColor();
+      setText();
+      setFocus();
+      return;
     }
 
     //call CreateLoadTrackingFromHH
@@ -729,17 +791,16 @@ class _GoodIssueState extends State<GoodIssue> {
       );
 
       if (response.statusCode == 200) {
-        await showProgressLoading(true);
-        showSuccessDialog('Post Successful!');
         setState(() {
           step = 1;
         });
+        await showProgressLoading(true);
+        showSuccessDialog('Post Successful!');
         setVisible();
         setReadOnly();
         setColor();
         setText();
         setFocus();
-        return;
       } else {
         await showProgressLoading(true);
         showErrorDialog('Error CreateLoadTrackingFromHH');
@@ -1047,7 +1108,8 @@ class _GoodIssueState extends State<GoodIssue> {
                                     Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                            builder: (context) => HistoryGI()));
+                                            builder: (context) =>
+                                                LoadHistoryGI()));
                                   }
                                 : null,
                           ),
@@ -1078,7 +1140,7 @@ class _GoodIssueState extends State<GoodIssue> {
                           height: 40.0,
                           child: new RaisedButton(
                             focusNode: focusNodes[2],
-                            color: step == 3 ? Colors.green : Colors.blue,
+                            color: Colors.green,
                             child: const Text('Submit',
                                 style: TextStyle(
                                   color: Colors.white,

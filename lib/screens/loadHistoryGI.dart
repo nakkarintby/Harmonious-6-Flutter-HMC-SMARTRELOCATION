@@ -5,16 +5,16 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:progress_dialog/progress_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:test/class/SelectLTLoadedHistList.dart';
+import 'package:test/class/selectLTLoadedHistList.dart';
 import 'package:test/class/listpallet.dart';
 import 'package:flutter/services.dart';
 
-class HistoryGI extends StatefulWidget {
+class LoadHistoryGI extends StatefulWidget {
   @override
-  _HistoryGIState createState() => _HistoryGIState();
+  _LoadHistoryGIState createState() => _LoadHistoryGIState();
 }
 
-class _HistoryGIState extends State<HistoryGI> {
+class _LoadHistoryGIState extends State<LoadHistoryGI> {
   List<SelectLTLoadedHistList> list = [];
   String configs = '';
   String accessToken = "";
@@ -148,7 +148,7 @@ class _HistoryGIState extends State<HistoryGI> {
 
       http.Response response = await http.get(url, headers: headers);
       var data = json.decode(response.body);
-      
+
       if (response.statusCode == 200) {
         setState(() {
           list = (json.decode(response.body) as List)
@@ -157,12 +157,22 @@ class _HistoryGIState extends State<HistoryGI> {
         });
         await showProgressLoading(true);
       } else {
+        setState(() {
+          documentNumberController.text = '';
+          lotController.text = '';
+        });
         await showProgressLoading(true);
         showErrorDialog('ไม่พบข้อมูลสินค้า');
+        return;
       }
     } catch (e) {
+      setState(() {
+        documentNumberController.text = '';
+        lotController.text = '';
+      });
       await showProgressLoading(true);
       showErrorDialog('Error occured while History');
+      return;
     }
   }
 

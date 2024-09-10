@@ -3,6 +3,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:test/class/reprintCreate.dart';
 import 'package:test/class/createLoadTracking.dart';
 import 'package:test/class/resultSelectChkLoadedFull.dart';
 import 'package:test/screens/doDetailGI.dart';
@@ -23,57 +24,76 @@ class Reprint extends StatefulWidget {
 
 class _ReprintState extends State<Reprint> {
   final _formKey = GlobalKey<FormState>();
-  TextEditingController matNumberController = TextEditingController();
   TextEditingController matDescController = TextEditingController();
+  TextEditingController matNumberController = TextEditingController();
   TextEditingController lotController = TextEditingController();
+  TextEditingController palletNoController = TextEditingController();
   TextEditingController weightController = TextEditingController();
+  TextEditingController unitController = TextEditingController();
   TextEditingController bagTypeController = TextEditingController();
-  TextEditingController productionDateController = TextEditingController();
   TextEditingController tisiController = TextEditingController();
   TextEditingController labelQtyController = TextEditingController();
+  TextEditingController productionDateController = TextEditingController();
 
+  bool matDescVisible = false;
   bool matNumberVisible = false;
-  bool detailVisible = false;
+  bool lotVisible = false;
+  bool palletNoVisible = false;
+  bool weightVisible = false;
+  bool unitVisible = false;
+  bool bagTypeVisible = false;
+  bool tisiVisible = false;
+  bool labelQtyVisible = false;
+  bool productionDateVisible = false;
+
   bool buttonVisible = false;
 
-  bool matNumberReadonly = false;
   bool matDescReadonly = false;
+  bool matNumberReadonly = false;
   bool lotReadonly = false;
+  bool palletNoReadonly = false;
   bool weightReadonly = false;
+  bool unitReadonly = false;
   bool bagTypeReadonly = false;
-  bool productionDateReadonly = false;
   bool tisiReadonly = false;
   bool labelQtyReadonly = false;
+  bool productionDateReadonly = false;
 
-  Color matNumberColor = Color(0xFFFFFFFF);
   Color matDescColor = Color(0xFFFFFFFF);
+  Color matNumberColor = Color(0xFFFFFFFF);
   Color lotColor = Color(0xFFFFFFFF);
+  Color palletNoColor = Color(0xFFFFFFFF);
   Color weightColor = Color(0xFFFFFFFF);
+  Color unitColor = Color(0xFFFFFFFF);
   Color bagTypeColor = Color(0xFFFFFFFF);
-  Color productionDateColor = Color(0xFFFFFFFF);
   Color tisiColor = Color(0xFFFFFFFF);
   Color labelQtyColor = Color(0xFFFFFFFF);
+  Color productionDateColor = Color(0xFFFFFFFF);
 
   bool backEnabled = false;
   bool submitEnabled = false;
 
-  String matNumberInput = '';
   String matDescInput = '';
+  String matNumberInput = '';
   String lotInput = '';
+  String palletNoInput = '';
   String weightInput = '';
+  String unitInput = '';
   String bagTypeInput = '';
-  String productionDateInput = '';
   String tisiInput = '';
   String labelQtyInput = '';
+  String productionDateInput = '';
 
   int step = 1;
-  late List<FocusNode> focusNodes = List.generate(3, (index) => FocusNode());
+  late List<FocusNode> focusNodes = List.generate(11, (index) => FocusNode());
   late Timer timer;
 
   String configs = '';
   String deviceInfo = '';
   String accessToken = '';
   String username = '';
+
+  late RePrintCreate resultReprintCreate = RePrintCreate();
 
   @override
   void initState() {
@@ -121,14 +141,167 @@ class _ReprintState extends State<Reprint> {
   void setVisible() {
     if (step == 1) {
       setState(() {
-        matNumberVisible = true;
-        detailVisible = false;
+        matDescVisible = true;
+        matNumberVisible = false;
+        lotVisible = false;
+        palletNoVisible = false;
+        weightVisible = false;
+        unitVisible = false;
+        bagTypeVisible = false;
+        tisiVisible = false;
+        labelQtyVisible = false;
+        productionDateVisible = false;
+
         buttonVisible = false;
       });
     } else if (step == 2) {
       setState(() {
+        matDescVisible = true;
         matNumberVisible = true;
-        detailVisible = true;
+        lotVisible = false;
+        palletNoVisible = false;
+        weightVisible = false;
+        unitVisible = false;
+        bagTypeVisible = false;
+        tisiVisible = false;
+        labelQtyVisible = false;
+        productionDateVisible = false;
+
+        buttonVisible = true;
+      });
+    } else if (step == 3) {
+      setState(() {
+        matDescVisible = true;
+        matNumberVisible = true;
+        lotVisible = true;
+        palletNoVisible = false;
+        weightVisible = false;
+        unitVisible = false;
+        bagTypeVisible = false;
+        tisiVisible = false;
+        labelQtyVisible = false;
+        productionDateVisible = false;
+
+        buttonVisible = true;
+      });
+    } else if (step == 4) {
+      setState(() {
+        matDescVisible = true;
+        matNumberVisible = true;
+        lotVisible = true;
+        palletNoVisible = true;
+        weightVisible = false;
+        unitVisible = false;
+        bagTypeVisible = false;
+        tisiVisible = false;
+        labelQtyVisible = false;
+        productionDateVisible = false;
+
+        buttonVisible = true;
+      });
+    } else if (step == 5) {
+      setState(() {
+        matDescVisible = true;
+        matNumberVisible = true;
+        lotVisible = true;
+        palletNoVisible = true;
+        weightVisible = true;
+        unitVisible = false;
+        bagTypeVisible = false;
+        tisiVisible = false;
+        labelQtyVisible = false;
+        productionDateVisible = false;
+
+        buttonVisible = true;
+      });
+    } else if (step == 6) {
+      setState(() {
+        matDescVisible = true;
+        matNumberVisible = true;
+        lotVisible = true;
+        palletNoVisible = true;
+        weightVisible = true;
+        unitVisible = true;
+        bagTypeVisible = false;
+        tisiVisible = false;
+        labelQtyVisible = false;
+        productionDateVisible = false;
+
+        buttonVisible = true;
+      });
+    } else if (step == 7) {
+      setState(() {
+        matDescVisible = true;
+        matNumberVisible = true;
+        lotVisible = true;
+        palletNoVisible = true;
+        weightVisible = true;
+        unitVisible = true;
+        bagTypeVisible = true;
+        tisiVisible = false;
+        labelQtyVisible = false;
+        productionDateVisible = false;
+
+        buttonVisible = true;
+      });
+    } else if (step == 8) {
+      setState(() {
+        matDescVisible = true;
+        matNumberVisible = true;
+        lotVisible = true;
+        palletNoVisible = true;
+        weightVisible = true;
+        unitVisible = true;
+        bagTypeVisible = true;
+        tisiVisible = true;
+        labelQtyVisible = false;
+        productionDateVisible = false;
+
+        buttonVisible = true;
+      });
+    } else if (step == 9) {
+      setState(() {
+        matDescVisible = true;
+        matNumberVisible = true;
+        lotVisible = true;
+        palletNoVisible = true;
+        weightVisible = true;
+        unitVisible = true;
+        bagTypeVisible = true;
+        tisiVisible = true;
+        labelQtyVisible = true;
+        productionDateVisible = false;
+
+        buttonVisible = true;
+      });
+    } else if (step == 10) {
+      setState(() {
+        matDescVisible = true;
+        matNumberVisible = true;
+        lotVisible = true;
+        palletNoVisible = true;
+        weightVisible = true;
+        unitVisible = true;
+        bagTypeVisible = true;
+        tisiVisible = true;
+        labelQtyVisible = true;
+        productionDateVisible = true;
+
+        buttonVisible = true;
+      });
+    } else if (step == 11) {
+      setState(() {
+        matDescVisible = true;
+        matNumberVisible = true;
+        lotVisible = true;
+        palletNoVisible = true;
+        weightVisible = true;
+        unitVisible = true;
+        bagTypeVisible = true;
+        tisiVisible = true;
+        labelQtyVisible = true;
+        productionDateVisible = true;
+
         buttonVisible = true;
       });
     }
@@ -137,28 +310,176 @@ class _ReprintState extends State<Reprint> {
   void setReadOnly() {
     if (step == 1) {
       setState(() {
-        matNumberReadonly = false;
         matDescReadonly = false;
+        matNumberReadonly = false;
         lotReadonly = false;
+        palletNoReadonly = false;
         weightReadonly = false;
+        unitReadonly = false;
         bagTypeReadonly = false;
-        productionDateReadonly = false;
         tisiReadonly = false;
         labelQtyReadonly = false;
+        productionDateReadonly = false;
 
         backEnabled = false;
         submitEnabled = false;
       });
     } else if (step == 2) {
       setState(() {
-        matNumberReadonly = true;
         matDescReadonly = true;
+        matNumberReadonly = false;
+        lotReadonly = false;
+        palletNoReadonly = false;
+        weightReadonly = false;
+        unitReadonly = false;
+        bagTypeReadonly = false;
+        tisiReadonly = false;
+        labelQtyReadonly = false;
+        productionDateReadonly = false;
+
+        backEnabled = true;
+        submitEnabled = false;
+      });
+    } else if (step == 3) {
+      setState(() {
+        matDescReadonly = true;
+        matNumberReadonly = true;
+        lotReadonly = false;
+        palletNoReadonly = false;
+        weightReadonly = false;
+        unitReadonly = false;
+        bagTypeReadonly = false;
+        tisiReadonly = false;
+        labelQtyReadonly = false;
+        productionDateReadonly = false;
+
+        backEnabled = true;
+        submitEnabled = false;
+      });
+    } else if (step == 4) {
+      setState(() {
+        matDescReadonly = true;
+        matNumberReadonly = true;
         lotReadonly = true;
+        palletNoReadonly = false;
+        weightReadonly = false;
+        unitReadonly = false;
+        bagTypeReadonly = false;
+        tisiReadonly = false;
+        labelQtyReadonly = false;
+        productionDateReadonly = false;
+
+        backEnabled = true;
+        submitEnabled = false;
+      });
+    } else if (step == 5) {
+      setState(() {
+        matDescReadonly = true;
+        matNumberReadonly = true;
+        lotReadonly = true;
+        palletNoReadonly = true;
+        weightReadonly = false;
+        unitReadonly = false;
+        bagTypeReadonly = false;
+        tisiReadonly = false;
+        labelQtyReadonly = false;
+        productionDateReadonly = false;
+
+        backEnabled = true;
+        submitEnabled = false;
+      });
+    } else if (step == 6) {
+      setState(() {
+        matDescReadonly = true;
+        matNumberReadonly = true;
+        lotReadonly = true;
+        palletNoReadonly = true;
         weightReadonly = true;
+        unitReadonly = false;
+        bagTypeReadonly = false;
+        tisiReadonly = false;
+        labelQtyReadonly = false;
+        productionDateReadonly = false;
+
+        backEnabled = true;
+        submitEnabled = false;
+      });
+    } else if (step == 7) {
+      setState(() {
+        matDescReadonly = true;
+        matNumberReadonly = true;
+        lotReadonly = true;
+        palletNoReadonly = true;
+        weightReadonly = true;
+        unitReadonly = true;
+        bagTypeReadonly = false;
+        tisiReadonly = false;
+        labelQtyReadonly = false;
+        productionDateReadonly = false;
+
+        backEnabled = true;
+        submitEnabled = false;
+      });
+    } else if (step == 8) {
+      setState(() {
+        matDescReadonly = true;
+        matNumberReadonly = true;
+        lotReadonly = true;
+        palletNoReadonly = true;
+        weightReadonly = true;
+        unitReadonly = true;
         bagTypeReadonly = true;
-        productionDateReadonly = true;
+        tisiReadonly = false;
+        labelQtyReadonly = false;
+        productionDateReadonly = false;
+
+        backEnabled = true;
+        submitEnabled = false;
+      });
+    } else if (step == 9) {
+      setState(() {
+        matDescReadonly = true;
+        matNumberReadonly = true;
+        lotReadonly = true;
+        palletNoReadonly = true;
+        weightReadonly = true;
+        unitReadonly = true;
+        bagTypeReadonly = true;
+        tisiReadonly = true;
+        labelQtyReadonly = false;
+        productionDateReadonly = false;
+
+        backEnabled = true;
+        submitEnabled = false;
+      });
+    } else if (step == 10) {
+      setState(() {
+        matDescReadonly = true;
+        matNumberReadonly = true;
+        lotReadonly = true;
+        palletNoReadonly = true;
+        weightReadonly = true;
+        unitReadonly = true;
+        bagTypeReadonly = true;
         tisiReadonly = true;
         labelQtyReadonly = true;
+        productionDateReadonly = false;
+
+        backEnabled = true;
+        submitEnabled = false;
+      });
+    } else if (step == 11) {
+      setState(() {
+        matDescReadonly = true;
+        matNumberReadonly = true;
+        lotReadonly = true;
+        palletNoReadonly = true;
+        weightReadonly = true;
+        unitReadonly = true;
+        bagTypeReadonly = true;
+        tisiReadonly = true;
+        labelQtyReadonly = true;
+        productionDateReadonly = true;
 
         backEnabled = true;
         submitEnabled = true;
@@ -169,25 +490,146 @@ class _ReprintState extends State<Reprint> {
   void setColor() {
     if (step == 1) {
       setState(() {
-        matNumberColor = Color(0xFFFFFFFF);
         matDescColor = Color(0xFFFFFFFF);
+        matNumberColor = Color(0xFFFFFFFF);
         lotColor = Color(0xFFFFFFFF);
+        palletNoColor = Color(0xFFFFFFFF);
         weightColor = Color(0xFFFFFFFF);
+        unitColor = Color(0xFFFFFFFF);
         bagTypeColor = Color(0xFFFFFFFF);
-        productionDateColor = Color(0xFFFFFFFF);
         tisiColor = Color(0xFFFFFFFF);
         labelQtyColor = Color(0xFFFFFFFF);
+        productionDateColor = Color(0xFFFFFFFF);
       });
     } else if (step == 2) {
       setState(() {
-        matNumberColor = Color(0xFFEEEEEE);
         matDescColor = Color(0xFFEEEEEE);
+        matNumberColor = Color(0xFFFFFFFF);
+        lotColor = Color(0xFFFFFFFF);
+        palletNoColor = Color(0xFFFFFFFF);
+        weightColor = Color(0xFFFFFFFF);
+        unitColor = Color(0xFFFFFFFF);
+        bagTypeColor = Color(0xFFFFFFFF);
+        tisiColor = Color(0xFFFFFFFF);
+        labelQtyColor = Color(0xFFFFFFFF);
+        productionDateColor = Color(0xFFFFFFFF);
+      });
+    } else if (step == 3) {
+      setState(() {
+        matDescColor = Color(0xFFEEEEEE);
+        matNumberColor = Color(0xFFEEEEEE);
+        lotColor = Color(0xFFFFFFFF);
+        palletNoColor = Color(0xFFFFFFFF);
+        weightColor = Color(0xFFFFFFFF);
+        unitColor = Color(0xFFFFFFFF);
+        bagTypeColor = Color(0xFFFFFFFF);
+        tisiColor = Color(0xFFFFFFFF);
+        labelQtyColor = Color(0xFFFFFFFF);
+        productionDateColor = Color(0xFFFFFFFF);
+      });
+    } else if (step == 4) {
+      setState(() {
+        matDescColor = Color(0xFFEEEEEE);
+        matNumberColor = Color(0xFFEEEEEE);
         lotColor = Color(0xFFEEEEEE);
+        palletNoColor = Color(0xFFFFFFFF);
+        weightColor = Color(0xFFFFFFFF);
+        unitColor = Color(0xFFFFFFFF);
+        bagTypeColor = Color(0xFFFFFFFF);
+        tisiColor = Color(0xFFFFFFFF);
+        labelQtyColor = Color(0xFFFFFFFF);
+        productionDateColor = Color(0xFFFFFFFF);
+      });
+    } else if (step == 5) {
+      setState(() {
+        matDescColor = Color(0xFFEEEEEE);
+        matNumberColor = Color(0xFFEEEEEE);
+        lotColor = Color(0xFFEEEEEE);
+        palletNoColor = Color(0xFFEEEEEE);
+        weightColor = Color(0xFFFFFFFF);
+        unitColor = Color(0xFFFFFFFF);
+        bagTypeColor = Color(0xFFFFFFFF);
+        tisiColor = Color(0xFFFFFFFF);
+        labelQtyColor = Color(0xFFFFFFFF);
+        productionDateColor = Color(0xFFFFFFFF);
+      });
+    } else if (step == 6) {
+      setState(() {
+        matDescColor = Color(0xFFEEEEEE);
+        matNumberColor = Color(0xFFEEEEEE);
+        lotColor = Color(0xFFEEEEEE);
+        palletNoColor = Color(0xFFEEEEEE);
         weightColor = Color(0xFFEEEEEE);
+        unitColor = Color(0xFFFFFFFF);
+        bagTypeColor = Color(0xFFFFFFFF);
+        tisiColor = Color(0xFFFFFFFF);
+        labelQtyColor = Color(0xFFFFFFFF);
+        productionDateColor = Color(0xFFFFFFFF);
+      });
+    } else if (step == 7) {
+      setState(() {
+        matDescColor = Color(0xFFEEEEEE);
+        matNumberColor = Color(0xFFEEEEEE);
+        lotColor = Color(0xFFEEEEEE);
+        palletNoColor = Color(0xFFEEEEEE);
+        weightColor = Color(0xFFEEEEEE);
+        unitColor = Color(0xFFEEEEEE);
+        bagTypeColor = Color(0xFFFFFFFF);
+        tisiColor = Color(0xFFFFFFFF);
+        labelQtyColor = Color(0xFFFFFFFF);
+        productionDateColor = Color(0xFFFFFFFF);
+      });
+    } else if (step == 8) {
+      setState(() {
+        matDescColor = Color(0xFFEEEEEE);
+        matNumberColor = Color(0xFFEEEEEE);
+        lotColor = Color(0xFFEEEEEE);
+        palletNoColor = Color(0xFFEEEEEE);
+        weightColor = Color(0xFFEEEEEE);
+        unitColor = Color(0xFFEEEEEE);
         bagTypeColor = Color(0xFFEEEEEE);
-        productionDateColor = Color(0xFFEEEEEE);
+        tisiColor = Color(0xFFFFFFFF);
+        labelQtyColor = Color(0xFFFFFFFF);
+        productionDateColor = Color(0xFFFFFFFF);
+      });
+    } else if (step == 9) {
+      setState(() {
+        matDescColor = Color(0xFFEEEEEE);
+        matNumberColor = Color(0xFFEEEEEE);
+        lotColor = Color(0xFFEEEEEE);
+        palletNoColor = Color(0xFFEEEEEE);
+        weightColor = Color(0xFFEEEEEE);
+        unitColor = Color(0xFFEEEEEE);
+        bagTypeColor = Color(0xFFEEEEEE);
+        tisiColor = Color(0xFFEEEEEE);
+        labelQtyColor = Color(0xFFFFFFFF);
+        productionDateColor = Color(0xFFFFFFFF);
+      });
+    } else if (step == 10) {
+      setState(() {
+        matDescColor = Color(0xFFEEEEEE);
+        matNumberColor = Color(0xFFEEEEEE);
+        lotColor = Color(0xFFEEEEEE);
+        palletNoColor = Color(0xFFEEEEEE);
+        weightColor = Color(0xFFEEEEEE);
+        unitColor = Color(0xFFEEEEEE);
+        bagTypeColor = Color(0xFFEEEEEE);
         tisiColor = Color(0xFFEEEEEE);
         labelQtyColor = Color(0xFFEEEEEE);
+        productionDateColor = Color(0xFFFFFFFF);
+      });
+    } else if (step == 11) {
+      setState(() {
+        matDescColor = Color(0xFFEEEEEE);
+        matNumberColor = Color(0xFFEEEEEE);
+        lotColor = Color(0xFFEEEEEE);
+        palletNoColor = Color(0xFFEEEEEE);
+        weightColor = Color(0xFFEEEEEE);
+        unitColor = Color(0xFFEEEEEE);
+        bagTypeColor = Color(0xFFEEEEEE);
+        tisiColor = Color(0xFFEEEEEE);
+        labelQtyColor = Color(0xFFEEEEEE);
+        productionDateColor = Color(0xFFEEEEEE);
       });
     }
   }
@@ -195,25 +637,146 @@ class _ReprintState extends State<Reprint> {
   void setText() {
     if (step == 1) {
       setState(() {
-        matNumberController.text = '';
         matDescController.text = '';
+        matNumberController.text = '';
         lotController.text = '';
+        palletNoController.text = '';
         weightController.text = '';
+        unitController.text = '';
         bagTypeController.text = '';
-        productionDateController.text = '';
         tisiController.text = '';
         labelQtyController.text = '';
+        productionDateController.text = '';
       });
     } else if (step == 2) {
       setState(() {
-        matNumberController.text = matNumberInput;
         matDescController.text = matDescInput;
+        matNumberController.text = '';
+        lotController.text = '';
+        palletNoController.text = '';
+        weightController.text = '';
+        unitController.text = '';
+        bagTypeController.text = '';
+        tisiController.text = '';
+        labelQtyController.text = '';
+        productionDateController.text = '';
+      });
+    } else if (step == 3) {
+      setState(() {
+        matDescController.text = matDescInput;
+        matNumberController.text = matNumberInput;
+        lotController.text = '';
+        palletNoController.text = '';
+        weightController.text = '';
+        unitController.text = '';
+        bagTypeController.text = '';
+        tisiController.text = '';
+        labelQtyController.text = '';
+        productionDateController.text = '';
+      });
+    } else if (step == 4) {
+      setState(() {
+        matDescController.text = matDescInput;
+        matNumberController.text = matNumberInput;
         lotController.text = lotInput;
+        palletNoController.text = '';
+        weightController.text = '';
+        unitController.text = '';
+        bagTypeController.text = '';
+        tisiController.text = '';
+        labelQtyController.text = '';
+        productionDateController.text = '';
+      });
+    } else if (step == 5) {
+      setState(() {
+        matDescController.text = matDescInput;
+        matNumberController.text = matNumberInput;
+        lotController.text = lotInput;
+        palletNoController.text = palletNoInput;
+        weightController.text = '';
+        unitController.text = '';
+        bagTypeController.text = '';
+        tisiController.text = '';
+        labelQtyController.text = '';
+        productionDateController.text = '';
+      });
+    } else if (step == 6) {
+      setState(() {
+        matDescController.text = matDescInput;
+        matNumberController.text = matNumberInput;
+        lotController.text = lotInput;
+        palletNoController.text = palletNoInput;
         weightController.text = weightInput;
+        unitController.text = '';
+        bagTypeController.text = '';
+        tisiController.text = '';
+        labelQtyController.text = '';
+        productionDateController.text = '';
+      });
+    } else if (step == 7) {
+      setState(() {
+        matDescController.text = matDescInput;
+        matNumberController.text = matNumberInput;
+        lotController.text = lotInput;
+        palletNoController.text = palletNoInput;
+        weightController.text = weightInput;
+        unitController.text = unitInput;
+        bagTypeController.text = '';
+        tisiController.text = '';
+        labelQtyController.text = '';
+        productionDateController.text = '';
+      });
+    } else if (step == 8) {
+      setState(() {
+        matDescController.text = matDescInput;
+        matNumberController.text = matNumberInput;
+        lotController.text = lotInput;
+        palletNoController.text = palletNoInput;
+        weightController.text = weightInput;
+        unitController.text = unitInput;
         bagTypeController.text = bagTypeInput;
-        productionDateController.text = productionDateInput;
+        tisiController.text = '';
+        labelQtyController.text = '';
+        productionDateController.text = '';
+      });
+    } else if (step == 9) {
+      setState(() {
+        matDescController.text = matDescInput;
+        matNumberController.text = matNumberInput;
+        lotController.text = lotInput;
+        palletNoController.text = palletNoInput;
+        weightController.text = weightInput;
+        unitController.text = unitInput;
+        bagTypeController.text = bagTypeInput;
+        tisiController.text = tisiInput;
+        labelQtyController.text = '';
+        productionDateController.text = '';
+      });
+    } else if (step == 10) {
+      setState(() {
+        matDescController.text = matDescInput;
+        matNumberController.text = matNumberInput;
+        lotController.text = lotInput;
+        palletNoController.text = palletNoInput;
+        weightController.text = weightInput;
+        unitController.text = unitInput;
+        bagTypeController.text = bagTypeInput;
         tisiController.text = tisiInput;
         labelQtyController.text = labelQtyInput;
+        productionDateController.text = '';
+      });
+    } else if (step == 11) {
+      setState(() {
+        matDescController.text = matDescInput;
+        matNumberController.text = matNumberInput;
+        lotController.text = lotInput;
+        palletNoController.text = palletNoInput;
+        weightController.text = weightInput;
+        unitController.text = unitInput;
+        bagTypeController.text = bagTypeInput;
+        tisiController.text = tisiInput;
+        labelQtyController.text = labelQtyInput;
+        productionDateController.text = productionDateInput;
       });
     }
   }
@@ -225,6 +788,33 @@ class _ReprintState extends State<Reprint> {
     } else if (step == 2) {
       Future.delayed(Duration(milliseconds: 100))
           .then((_) => FocusScope.of(context).requestFocus(focusNodes[1]));
+    } else if (step == 3) {
+      Future.delayed(Duration(milliseconds: 100))
+          .then((_) => FocusScope.of(context).requestFocus(focusNodes[2]));
+    } else if (step == 4) {
+      Future.delayed(Duration(milliseconds: 100))
+          .then((_) => FocusScope.of(context).requestFocus(focusNodes[3]));
+    } else if (step == 5) {
+      Future.delayed(Duration(milliseconds: 100))
+          .then((_) => FocusScope.of(context).requestFocus(focusNodes[4]));
+    } else if (step == 6) {
+      Future.delayed(Duration(milliseconds: 100))
+          .then((_) => FocusScope.of(context).requestFocus(focusNodes[5]));
+    } else if (step == 7) {
+      Future.delayed(Duration(milliseconds: 100))
+          .then((_) => FocusScope.of(context).requestFocus(focusNodes[6]));
+    } else if (step == 8) {
+      Future.delayed(Duration(milliseconds: 100))
+          .then((_) => FocusScope.of(context).requestFocus(focusNodes[7]));
+    } else if (step == 9) {
+      Future.delayed(Duration(milliseconds: 100))
+          .then((_) => FocusScope.of(context).requestFocus(focusNodes[8]));
+    } else if (step == 10) {
+      Future.delayed(Duration(milliseconds: 100))
+          .then((_) => FocusScope.of(context).requestFocus(focusNodes[9]));
+    } else if (step == 11) {
+      Future.delayed(Duration(milliseconds: 100))
+          .then((_) => FocusScope.of(context).requestFocus(focusNodes[10]));
     }
   }
 
@@ -307,6 +897,9 @@ class _ReprintState extends State<Reprint> {
   }
 
   Future<void> scanQR() async {
+    if (step == 11) {
+      return;
+    }
     String barcodeScanRes;
     try {
       barcodeScanRes = await FlutterBarcodeScanner.scanBarcode(
@@ -314,36 +907,76 @@ class _ReprintState extends State<Reprint> {
     } on PlatformException {
       barcodeScanRes = 'Failed to get platform version.';
     }
-    if (step == 1) {
-      setState(() {
-        matNumberController.text = barcodeScanRes;
-      });
-      matNumberCheck();
-    } else {
-      return;
-    }
+    await validateCheck(barcodeScanRes);
+    return;
   }
 
-  Future<void> matNumberCheck() async {
+  Future<void> validateCheck(String value) async {
     await showProgressLoading(false);
-    setState(() {
-      matNumberController.text =
-          'Moplen HP400K|60112405|998|750|KG|08/08/2017|';
-    });
-
-    var split = matNumberController.text.split('|');
-
-    setState(() {
-      matNumberInput = '999999999';
-      matDescInput = split[0];
-      lotInput = split[1];
-      weightInput = '1500';
-      bagTypeInput = '1000';
-      productionDateInput = '01-01-66';
-      tisiInput = 'tisi';
-      labelQtyInput = '5000';
-      step++;
-    });
+    switch (step) {
+      case 1:
+        setState(() {
+          matDescInput = value;
+          step++;
+        });
+        break;
+      case 2:
+        setState(() {
+          matNumberInput = value;
+          step++;
+        });
+        break;
+      case 3:
+        setState(() {
+          lotInput = value;
+          step++;
+        });
+        break;
+      case 4:
+        setState(() {
+          palletNoInput = value;
+          step++;
+        });
+        break;
+      case 5:
+        setState(() {
+          weightInput = value;
+          step++;
+        });
+        break;
+      case 6:
+        setState(() {
+          unitInput = value;
+          step++;
+        });
+        break;
+      case 7:
+        setState(() {
+          bagTypeInput = value;
+          step++;
+        });
+        break;
+      case 8:
+        setState(() {
+          tisiInput = value;
+          step++;
+        });
+        break;
+      case 9:
+        setState(() {
+          labelQtyInput = value;
+          step++;
+        });
+        break;
+      case 10:
+        setState(() {
+          productionDateInput = value;
+          step++;
+        });
+        break;
+      default:
+        showErrorDialog('Error Validate');
+    }
 
     await showProgressLoading(true);
     setVisible();
@@ -354,19 +987,83 @@ class _ReprintState extends State<Reprint> {
   }
 
   Future<void> submitStep() async {
+    setState(() {
+      submitEnabled = false;
+    });
     await showProgressLoading(false);
 
-    await showProgressLoading(true);
-    showSuccessDialog('Post Successful!');
-    setState(() {
-      step = 1;
-    });
+    //call Update
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      if (prefs.getString('configs') != null) {
+        configs = prefs.getString('configs')!;
+      }
+      accessToken = prefs.getString('token')!;
+      username = prefs.getString('username')!;
 
-    setVisible();
-    setReadOnly();
-    setColor();
-    setText();
-    setFocus();
+      setState(() {
+        resultReprintCreate.matDesc = matDescInput;
+        resultReprintCreate.matNo = matNumberInput;
+        resultReprintCreate.batch = lotInput;
+        resultReprintCreate.palletNo = palletNoInput;
+        resultReprintCreate.weight = int.parse(weightInput);
+        resultReprintCreate.unit = unitInput;
+        resultReprintCreate.bagType = bagTypeInput;
+        resultReprintCreate.tisi = tisiInput;
+        resultReprintCreate.labelQty = int.parse(labelQtyInput);
+        resultReprintCreate.productionDate = productionDateInput;
+        resultReprintCreate.user = username;
+      });
+
+      var url = Uri.parse('http://' + configs + '/api/Barcode/ReprintLabel');
+
+      var headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Authorization": "Bearer " + accessToken
+      };
+
+      final encoding = Encoding.getByName('utf-8');
+      var jsonBody = jsonEncode(resultReprintCreate);
+
+      http.Response response = await http.post(
+        url,
+        headers: headers,
+        body: jsonBody,
+        encoding: encoding,
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          step = 1;
+        });
+        await showProgressLoading(true);
+        showSuccessDialog('Post Successful!');
+        setVisible();
+        setReadOnly();
+        setColor();
+        setText();
+        setFocus();
+      } else {
+        await showProgressLoading(true);
+        showErrorDialog('Error ReprintLabel');
+        setVisible();
+        setReadOnly();
+        setColor();
+        setText();
+        setFocus();
+        return;
+      }
+    } catch (e) {
+      await showProgressLoading(true);
+      showErrorDialog('Error occured while ReprintLabel');
+      setVisible();
+      setReadOnly();
+      setColor();
+      setText();
+      setFocus();
+      return;
+    }
   }
 
   @override
@@ -406,48 +1103,20 @@ class _ReprintState extends State<Reprint> {
                       left: MediaQuery.of(context).size.width / 5,
                       right: MediaQuery.of(context).size.width / 5),
                   child: Visibility(
-                      visible: matNumberVisible,
+                      visible: matDescVisible,
                       child: TextFormField(
                         focusNode: focusNodes[0],
-                        readOnly: matNumberReadonly,
-                        textInputAction: TextInputAction.go,
-                        style: TextStyle(fontSize: 13),
-                        onFieldSubmitted: (value) {
-                          matNumberCheck();
-                        },
-                        decoration: InputDecoration(
-                          //icon: const Icon(Icons.person),
-                          fillColor: matNumberColor,
-                          filled: true,
-                          hintText: 'Enter Mat No.',
-                          labelText: 'Mat Number',
-                          labelStyle: TextStyle(fontSize: 13),
-                          border: OutlineInputBorder(),
-                          isDense: true, // Added this
-                          contentPadding: EdgeInsets.all(14), //
-                        ),
-                        controller: matNumberController,
-                      ))),
-              SizedBox(
-                height: 14,
-              ),
-              Container(
-                  padding: new EdgeInsets.only(
-                      left: MediaQuery.of(context).size.width / 5,
-                      right: MediaQuery.of(context).size.width / 5),
-                  child: Visibility(
-                      visible: detailVisible,
-                      child: TextFormField(
-                        //focusNode: focusNodes[0],
                         readOnly: matDescReadonly,
                         textInputAction: TextInputAction.go,
                         style: TextStyle(fontSize: 13),
-                        onFieldSubmitted: (value) {},
+                        onFieldSubmitted: (value) {
+                          validateCheck(matDescController.text);
+                        },
                         decoration: InputDecoration(
                           //icon: const Icon(Icons.person),
                           fillColor: matDescColor,
                           filled: true,
-                          hintText: 'Enter Mat Desc',
+                          hintText: 'Enter Mat Desc.',
                           labelText: 'Mat Desc',
                           labelStyle: TextStyle(fontSize: 13),
                           border: OutlineInputBorder(),
@@ -464,13 +1133,45 @@ class _ReprintState extends State<Reprint> {
                       left: MediaQuery.of(context).size.width / 5,
                       right: MediaQuery.of(context).size.width / 5),
                   child: Visibility(
-                      visible: detailVisible,
+                      visible: matNumberVisible,
                       child: TextFormField(
-                        //focusNode: focusNodes[0],
+                        focusNode: focusNodes[1],
+                        readOnly: matNumberReadonly,
+                        textInputAction: TextInputAction.go,
+                        style: TextStyle(fontSize: 13),
+                        onFieldSubmitted: (value) {
+                          validateCheck(matNumberController.text);
+                        },
+                        decoration: InputDecoration(
+                          //icon: const Icon(Icons.person),
+                          fillColor: matNumberColor,
+                          filled: true,
+                          hintText: 'Enter MatNo.',
+                          labelText: 'Mat No',
+                          labelStyle: TextStyle(fontSize: 13),
+                          border: OutlineInputBorder(),
+                          isDense: true, // Added this
+                          contentPadding: EdgeInsets.all(14), //
+                        ),
+                        controller: matNumberController,
+                      ))),
+              SizedBox(
+                height: 14,
+              ),
+              Container(
+                  padding: new EdgeInsets.only(
+                      left: MediaQuery.of(context).size.width / 5,
+                      right: MediaQuery.of(context).size.width / 5),
+                  child: Visibility(
+                      visible: lotVisible,
+                      child: TextFormField(
+                        focusNode: focusNodes[2],
                         readOnly: lotReadonly,
                         textInputAction: TextInputAction.go,
                         style: TextStyle(fontSize: 13),
-                        onFieldSubmitted: (value) {},
+                        onFieldSubmitted: (value) {
+                          validateCheck(lotController.text);
+                        },
                         decoration: InputDecoration(
                           //icon: const Icon(Icons.person),
                           fillColor: lotColor,
@@ -492,13 +1193,45 @@ class _ReprintState extends State<Reprint> {
                       left: MediaQuery.of(context).size.width / 5,
                       right: MediaQuery.of(context).size.width / 5),
                   child: Visibility(
-                      visible: detailVisible,
+                      visible: palletNoVisible,
                       child: TextFormField(
-                        //focusNode: focusNodes[0],
+                        focusNode: focusNodes[3],
+                        readOnly: palletNoReadonly,
+                        textInputAction: TextInputAction.go,
+                        style: TextStyle(fontSize: 13),
+                        onFieldSubmitted: (value) {
+                          validateCheck(palletNoController.text);
+                        },
+                        decoration: InputDecoration(
+                          //icon: const Icon(Icons.person),
+                          fillColor: palletNoColor,
+                          filled: true,
+                          hintText: 'Enter palletNo.',
+                          labelText: 'palletNo',
+                          labelStyle: TextStyle(fontSize: 13),
+                          border: OutlineInputBorder(),
+                          isDense: true, // Added this
+                          contentPadding: EdgeInsets.all(14), //
+                        ),
+                        controller: palletNoController,
+                      ))),
+              SizedBox(
+                height: 14,
+              ),
+              Container(
+                  padding: new EdgeInsets.only(
+                      left: MediaQuery.of(context).size.width / 5,
+                      right: MediaQuery.of(context).size.width / 5),
+                  child: Visibility(
+                      visible: weightVisible,
+                      child: TextFormField(
+                        focusNode: focusNodes[4],
                         readOnly: weightReadonly,
                         textInputAction: TextInputAction.go,
                         style: TextStyle(fontSize: 13),
-                        onFieldSubmitted: (value) {},
+                        onFieldSubmitted: (value) {
+                          validateCheck(weightController.text);
+                        },
                         decoration: InputDecoration(
                           //icon: const Icon(Icons.person),
                           fillColor: weightColor,
@@ -520,13 +1253,45 @@ class _ReprintState extends State<Reprint> {
                       left: MediaQuery.of(context).size.width / 5,
                       right: MediaQuery.of(context).size.width / 5),
                   child: Visibility(
-                      visible: detailVisible,
+                      visible: unitVisible,
                       child: TextFormField(
-                        //focusNode: focusNodes[0],
+                        focusNode: focusNodes[5],
+                        readOnly: unitReadonly,
+                        textInputAction: TextInputAction.go,
+                        style: TextStyle(fontSize: 13),
+                        onFieldSubmitted: (value) {
+                          validateCheck(unitController.text);
+                        },
+                        decoration: InputDecoration(
+                          //icon: const Icon(Icons.person),
+                          fillColor: unitColor,
+                          filled: true,
+                          hintText: 'Enter Unit',
+                          labelText: 'Unit',
+                          labelStyle: TextStyle(fontSize: 13),
+                          border: OutlineInputBorder(),
+                          isDense: true, // Added this
+                          contentPadding: EdgeInsets.all(14), //
+                        ),
+                        controller: unitController,
+                      ))),
+              SizedBox(
+                height: 14,
+              ),
+              Container(
+                  padding: new EdgeInsets.only(
+                      left: MediaQuery.of(context).size.width / 5,
+                      right: MediaQuery.of(context).size.width / 5),
+                  child: Visibility(
+                      visible: bagTypeVisible,
+                      child: TextFormField(
+                        focusNode: focusNodes[6],
                         readOnly: bagTypeReadonly,
                         textInputAction: TextInputAction.go,
                         style: TextStyle(fontSize: 13),
-                        onFieldSubmitted: (value) {},
+                        onFieldSubmitted: (value) {
+                          validateCheck(bagTypeController.text);
+                        },
                         decoration: InputDecoration(
                           //icon: const Icon(Icons.person),
                           fillColor: bagTypeColor,
@@ -548,41 +1313,15 @@ class _ReprintState extends State<Reprint> {
                       left: MediaQuery.of(context).size.width / 5,
                       right: MediaQuery.of(context).size.width / 5),
                   child: Visibility(
-                      visible: detailVisible,
+                      visible: tisiVisible,
                       child: TextFormField(
-                        //focusNode: focusNodes[0],
-                        readOnly: productionDateReadonly,
-                        textInputAction: TextInputAction.go,
-                        style: TextStyle(fontSize: 13),
-                        onFieldSubmitted: (value) {},
-                        decoration: InputDecoration(
-                          //icon: const Icon(Icons.person),
-                          fillColor: productionDateColor,
-                          filled: true,
-                          hintText: 'Enter Production Date',
-                          labelText: 'Production Date',
-                          labelStyle: TextStyle(fontSize: 13),
-                          border: OutlineInputBorder(),
-                          isDense: true, // Added this
-                          contentPadding: EdgeInsets.all(14), //
-                        ),
-                        controller: productionDateController,
-                      ))),
-              SizedBox(
-                height: 14,
-              ),
-              Container(
-                  padding: new EdgeInsets.only(
-                      left: MediaQuery.of(context).size.width / 5,
-                      right: MediaQuery.of(context).size.width / 5),
-                  child: Visibility(
-                      visible: detailVisible,
-                      child: TextFormField(
-                        //focusNode: focusNodes[0],
+                        focusNode: focusNodes[7],
                         readOnly: tisiReadonly,
                         textInputAction: TextInputAction.go,
                         style: TextStyle(fontSize: 13),
-                        onFieldSubmitted: (value) {},
+                        onFieldSubmitted: (value) {
+                          validateCheck(tisiController.text);
+                        },
                         decoration: InputDecoration(
                           //icon: const Icon(Icons.person),
                           fillColor: tisiColor,
@@ -604,25 +1343,57 @@ class _ReprintState extends State<Reprint> {
                       left: MediaQuery.of(context).size.width / 5,
                       right: MediaQuery.of(context).size.width / 5),
                   child: Visibility(
-                      visible: detailVisible,
+                      visible: labelQtyVisible,
                       child: TextFormField(
-                        //focusNode: focusNodes[0],
+                        focusNode: focusNodes[8],
                         readOnly: labelQtyReadonly,
                         textInputAction: TextInputAction.go,
                         style: TextStyle(fontSize: 13),
-                        onFieldSubmitted: (value) {},
+                        onFieldSubmitted: (value) {
+                          validateCheck(labelQtyController.text);
+                        },
                         decoration: InputDecoration(
                           //icon: const Icon(Icons.person),
                           fillColor: labelQtyColor,
                           filled: true,
-                          hintText: 'Enter LabelQty',
-                          labelText: 'LabelQty',
+                          hintText: 'Enter Qty',
+                          labelText: 'Qty',
                           labelStyle: TextStyle(fontSize: 13),
                           border: OutlineInputBorder(),
                           isDense: true, // Added this
                           contentPadding: EdgeInsets.all(14), //
                         ),
                         controller: labelQtyController,
+                      ))),
+              SizedBox(
+                height: 14,
+              ),
+              Container(
+                  padding: new EdgeInsets.only(
+                      left: MediaQuery.of(context).size.width / 5,
+                      right: MediaQuery.of(context).size.width / 5),
+                  child: Visibility(
+                      visible: productionDateVisible,
+                      child: TextFormField(
+                        focusNode: focusNodes[9],
+                        readOnly: productionDateReadonly,
+                        textInputAction: TextInputAction.go,
+                        style: TextStyle(fontSize: 13),
+                        onFieldSubmitted: (value) {
+                          validateCheck(productionDateController.text);
+                        },
+                        decoration: InputDecoration(
+                          //icon: const Icon(Icons.person),
+                          fillColor: productionDateColor,
+                          filled: true,
+                          hintText: 'Enter Production Date',
+                          labelText: 'Production Date',
+                          labelStyle: TextStyle(fontSize: 13),
+                          border: OutlineInputBorder(),
+                          isDense: true, // Added this
+                          contentPadding: EdgeInsets.all(14), //
+                        ),
+                        controller: productionDateController,
                       ))),
               SizedBox(
                 height: 14,
@@ -654,8 +1425,8 @@ class _ReprintState extends State<Reprint> {
                           width: 70.0,
                           height: 40.0,
                           child: new RaisedButton(
-                            focusNode: focusNodes[1],
-                            color: step == 2 ? Colors.green : Colors.blue,
+                            focusNode: focusNodes[10],
+                            color: Colors.green,
                             child: const Text('Submit',
                                 style: TextStyle(
                                   color: Colors.white,

@@ -6,7 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:progress_dialog/progress_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/services.dart';
-import 'package:test/class/SelectDODetail.dart';
+import 'package:test/class/selectDODetail.dart';
 import 'package:test/screens/allHistoryGI.dart';
 
 class DoDetailGI extends StatefulWidget {
@@ -150,12 +150,20 @@ class _DoDetailGIState extends State<DoDetailGI> {
         });
         await showProgressLoading(true);
       } else {
+        setState(() {
+          documentNumberController.text = '';
+        });
         await showProgressLoading(true);
         showErrorDialog('ไม่พบข้อมูลสินค้า');
+        return;
       }
     } catch (e) {
+      setState(() {
+        documentNumberController.text = '';
+      });
       await showProgressLoading(true);
       showErrorDialog('Error occured while History');
+      return;
     }
   }
 
@@ -172,7 +180,7 @@ class _DoDetailGIState extends State<DoDetailGI> {
 
   List<DataColumn> _createColumns() {
     return [
-       DataColumn(
+      DataColumn(
           label: Expanded(
               child: (Text('Lot',
                   softWrap: true,
@@ -181,7 +189,7 @@ class _DoDetailGIState extends State<DoDetailGI> {
                       fontWeight: FontWeight.bold, color: Colors.black))))),
       DataColumn(
           label: Expanded(
-              child: (Text('Qty',
+              child: (Text('Quality',
                   softWrap: true,
                   textAlign: TextAlign.start,
                   style: TextStyle(
@@ -213,7 +221,7 @@ class _DoDetailGIState extends State<DoDetailGI> {
                 // }),
                 cells: [
                   DataCell(Container(
-                      width: 70, //SET width
+                      width: 85, //SET width
                       child: Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
@@ -221,7 +229,7 @@ class _DoDetailGIState extends State<DoDetailGI> {
                             textAlign: TextAlign.start,
                           )))),
                   DataCell(Container(
-                      width: 70, //SET width
+                      width: 60, //SET width
                       child: Align(
                           alignment: Alignment.center,
                           child: Text(
@@ -229,7 +237,7 @@ class _DoDetailGIState extends State<DoDetailGI> {
                             textAlign: TextAlign.start,
                           )))),
                   DataCell(Container(
-                      width: 70, //SET width
+                      width: 60, //SET width
                       child: Align(
                           alignment: Alignment.center,
                           child: Text(
@@ -237,7 +245,7 @@ class _DoDetailGIState extends State<DoDetailGI> {
                             textAlign: TextAlign.start,
                           )))),
                   DataCell(Container(
-                      width: 70, //SET width
+                      width: 90, //SET width
                       child: Align(
                           alignment: Alignment.center,
                           child: Text(
@@ -248,13 +256,11 @@ class _DoDetailGIState extends State<DoDetailGI> {
         .toList();
   }
 
-  
   Future<void> setAllHistoryHeader() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString('donoAllHistoryGI', dono);
     await prefs.setString('plandateAllHistoryGI', plandate);
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -339,15 +345,15 @@ class _DoDetailGIState extends State<DoDetailGI> {
                               color: Colors.white,
                             )),
                         onPressed: allhistoryEnabled
-                                ? () async {
-                                    await setAllHistoryHeader();
-                                    Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (context) => AllHistoryGI()));
-                                  }
-                                : null,
-                          ),
+                            ? () async {
+                                await setAllHistoryHeader();
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => AllHistoryGI()));
+                              }
+                            : null,
+                      ),
                     ),
                   ],
                 ),

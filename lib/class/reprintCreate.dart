@@ -1,4 +1,4 @@
-class CreateBarCode {
+class RePrintCreate {
   String? bagType;
   String? matNo;
   String? matDesc;
@@ -11,7 +11,7 @@ class CreateBarCode {
   int? labelQty;
   String? user;
 
-  CreateBarCode(
+  RePrintCreate(
       {this.bagType,
       this.matNo,
       this.matDesc,
@@ -24,7 +24,7 @@ class CreateBarCode {
       this.labelQty,
       this.user});
 
-  CreateBarCode.fromJson(Map<String, dynamic> json) {
+  RePrintCreate.fromJson(Map<String, dynamic> json) {
     bagType = json['bagType'];
     matNo = json['matNo'];
     matDesc = json['matDesc'];

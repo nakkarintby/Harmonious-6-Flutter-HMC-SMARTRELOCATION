@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+          import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -7,10 +7,10 @@ import 'package:image_picker/image_picker.dart';
 import 'package:progress_dialog/progress_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/services.dart';
-import 'package:test/class/CreateAttachment.dart';
-import 'package:test/class/DeliveryOrderDOValidate.dart';
-import 'package:test/class/ListAllHistoryGI.dart';
-import 'package:test/class/SelectDODetail.dart';
+import 'package:test/class/createAttachment.dart';
+import 'package:test/class/deliveryOrderDOValidate.dart';
+import 'package:test/class/listAllHistoryGI.dart';
+import 'package:test/class/selectDODetail.dart';
 import 'package:test/screens/allHistoryGI.dart';
 
 class takePhoto extends StatefulWidget {
@@ -258,6 +258,8 @@ class _takePhotoState extends State<takePhoto> {
         if (resultDeliveryOrderDOValidate.result! == false) {
           await showProgressLoading(true);
           showErrorDialog(resultDeliveryOrderDOValidate.message!);
+          setReadOnly();
+          setText();
           return;
         }
         //validate mat no
@@ -268,6 +270,8 @@ class _takePhotoState extends State<takePhoto> {
         if (checkResultDOValidate.deliveryOrderId == null) {
           await showProgressLoading(true);
           showErrorDialog('DoValidate Error');
+          setReadOnly();
+          setText();
           return;
         } else {
           setState(() {
@@ -277,10 +281,14 @@ class _takePhotoState extends State<takePhoto> {
       } else {
         await showProgressLoading(true);
         showErrorDialog('Error DOValidate');
+        setReadOnly();
+        setText();
       }
     } catch (e) {
       await showProgressLoading(true);
       showErrorDialog('Error occured while DOValidate');
+      setReadOnly();
+      setText();
     }
 
     try {
@@ -325,28 +333,26 @@ class _takePhotoState extends State<takePhoto> {
       );
 
       if (response.statusCode == 200) {
-        await showProgressLoading(true);
-        showSuccessDialog('Upload Successful!');
         setState(() {
           step = 0;
+          _image = null;
         });
+        await showProgressLoading(true);
+        showSuccessDialog('Upload Successful!');
         setReadOnly();
         setText();
-        return;
       } else {
         await showProgressLoading(true);
-
+        showErrorDialog('Error occured while upload');
         setReadOnly();
         setText();
-        showErrorDialog('Error occured while upload');
         return;
       }
     } catch (e) {
       await showProgressLoading(true);
-
+      showErrorDialog('Error occured while upload');
       setReadOnly();
       setText();
-      showErrorDialog('Error occured while upload');
       return;
     }
   }

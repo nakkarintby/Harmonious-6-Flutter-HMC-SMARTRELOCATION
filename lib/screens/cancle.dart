@@ -3,9 +3,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:test/class/DeliveryOrderDOValidate.dart';
-import 'package:test/class/SelectLTLoaded.dart';
-import 'package:test/class/UpdateSelectLTLoaded.dart';
+import 'package:test/class/deliveryOrderDOValidate.dart';
+import 'package:test/class/selectLTLoaded.dart';
+import 'package:test/class/updateSelectLTLoaded.dart';
 import 'package:test/class/createLoadTracking.dart';
 import 'package:test/class/resultSelectChkLoadedFull.dart';
 import 'package:test/screens/doDetailGI.dart';
@@ -393,8 +393,18 @@ class _CancleState extends State<Cancle> {
 
         //check validate result api
         if (resultDeliveryOrderDOValidate.result! == false) {
+          setState(() {
+            documentNumberController.text = '';
+            documentNumberInput = '';
+            plandate = '';
+          });
           await showProgressLoading(true);
           showErrorDialog(resultDeliveryOrderDOValidate.message!);
+          setVisible();
+          setReadOnly();
+          setColor();
+          setText();
+          setFocus();
           return;
         }
 
@@ -402,19 +412,41 @@ class _CancleState extends State<Cancle> {
           step++;
         });
         await showProgressLoading(true);
+        setVisible();
+        setReadOnly();
+        setColor();
+        setText();
+        setFocus();
       } else {
+        setState(() {
+          documentNumberController.text = '';
+          documentNumberInput = '';
+          plandate = '';
+        });
         await showProgressLoading(true);
         showErrorDialog('Error DOValidate');
+        setVisible();
+        setReadOnly();
+        setColor();
+        setText();
+        setFocus();
+        return;
       }
     } catch (e) {
+      setState(() {
+        documentNumberController.text = '';
+        documentNumberInput = '';
+        plandate = '';
+      });
       await showProgressLoading(true);
       showErrorDialog('Error occured while DOValidate');
+      setVisible();
+      setReadOnly();
+      setColor();
+      setText();
+      setFocus();
+      return;
     }
-    setVisible();
-    setReadOnly();
-    setColor();
-    setText();
-    setFocus();
   }
 
   Future<void> matNumberCheck() async {
@@ -480,12 +512,12 @@ class _CancleState extends State<Cancle> {
       http.Response response = await http.get(url, headers: headers);
 
       if (response.statusCode == 204) {
-        await showProgressLoading(true);
-        showErrorDialog('ไม่พบสินค้าพาเลทนี้ในระบบ');
         setState(() {
           matNumberController.text = '';
           matNumberInput = '';
         });
+        await showProgressLoading(true);
+        showErrorDialog('ไม่พบสินค้าพาเลทนี้ในระบบ');
         setVisible();
         setReadOnly();
         setColor();
@@ -499,12 +531,12 @@ class _CancleState extends State<Cancle> {
         });
 
         if (resultSelectLTLoaded.quantity != quantity) {
-          await showProgressLoading(true);
-          showErrorDialog('น้ำหนักพาเลทสินค้าไม่ถูกต้อง');
           setState(() {
             matNumberController.text = '';
             matNumberInput = '';
           });
+          await showProgressLoading(true);
+          showErrorDialog('น้ำหนักพาเลทสินค้าไม่ถูกต้อง');
           setVisible();
           setReadOnly();
           setColor();
@@ -524,12 +556,12 @@ class _CancleState extends State<Cancle> {
         setText();
         setFocus();
       } else {
-        await showProgressLoading(true);
-        showErrorDialog('Error SelectLTLoaded');
         setState(() {
           matNumberController.text = '';
           matNumberInput = '';
         });
+        await showProgressLoading(true);
+        showErrorDialog('Error SelectLTLoaded');
         setVisible();
         setReadOnly();
         setColor();
@@ -538,16 +570,27 @@ class _CancleState extends State<Cancle> {
         return;
       }
     } catch (e) {
-      await showProgressLoading(true);
       setState(() {
         matNumberController.text = '';
         matNumberInput = '';
       });
+      await showProgressLoading(true);
       showErrorDialog('Error occured while SelectLTLoaded');
+      setVisible();
+      setReadOnly();
+      setColor();
+      setText();
+      setFocus();
+      return;
     }
   }
 
   Future<void> submitStep() async {
+    setState(() {
+      submitEnabled = false;
+    });
+    await showProgressLoading(false);
+
     //call Update
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -581,17 +624,16 @@ class _CancleState extends State<Cancle> {
       );
 
       if (response.statusCode == 200) {
-        await showProgressLoading(true);
-        showSuccessDialog('Post Successful!');
         setState(() {
           step = 1;
         });
+        await showProgressLoading(true);
+        showSuccessDialog('Post Successful!');
         setVisible();
         setReadOnly();
         setColor();
         setText();
         setFocus();
-        return;
       } else {
         await showProgressLoading(true);
         showErrorDialog('Error CreateLoadTrackingFromHH');
