@@ -584,7 +584,7 @@ class _ReprintState extends State<Reprint> {
       accessToken = prefs.getString('token')!;
       username = prefs.getString('username')!;
 
-      if (bagTypeInput == 'LB') {
+      if (productionDateInput == '') {
         setState(() {
           resultReprintCreate.matDesc = matDescInput;
           resultReprintCreate.matNo = matNumberInput;

@@ -697,9 +697,8 @@ class _TransferState extends State<Transfer> {
 
       http.Response response = await http.get(url, headers: headers);
 
-      var data = json.decode(response.body);
-
       if (response.statusCode == 200) {
+        var data = json.decode(response.body);
         setState(() {
           resultSelectChkLoadedFull = SelectChkLoadedFull.fromJson(data);
         });
@@ -722,6 +721,8 @@ class _TransferState extends State<Transfer> {
         }
 
         //next step
+      } else if (response.statusCode == 204) {
+        //first scan pallet will not find
       } else {
         await showProgressLoading(true);
         showErrorDialog('Error SelectChkLoadedFull');

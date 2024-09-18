@@ -311,8 +311,6 @@ class _takePhotoState extends State<takePhoto> {
         imageupload.userType = 'wareHouse';
         imageupload.isDeleted = false;
         imageupload.createdBy = username;
-        imageupload.lastUpdatedBy = username;
-        ;
       });
 
       var url = Uri.parse('http://' + configs + '/api/Attachment/Create');
