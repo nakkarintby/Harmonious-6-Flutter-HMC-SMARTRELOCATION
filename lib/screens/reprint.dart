@@ -489,12 +489,7 @@ class _ReprintState extends State<Reprint> {
 
   Future<void> matnoValidateCheck() async {
     await showProgressLoading(false);
-    setState(() {
-      matNumberController.text =
-          'Moplen HP400H|610009.0025|60134684|21|1000|kgs|2024-09-10T06:48:07.978Z||';
-    });
     var split = matNumberController.text.split('|');
-    print(split.length);
     if (split.length < 7 ) {
       setState(() {
         matNumberController.text = '';
