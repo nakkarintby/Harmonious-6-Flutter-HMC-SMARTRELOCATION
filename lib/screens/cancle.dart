@@ -456,10 +456,10 @@ class _CancleState extends State<Cancle> {
 
     setState(() {
       matDescLabelInput = split[0];
-      matNumberInput = split[1];
-      lotInput = split[2];
-      palletnumberInput = split[3];
-      quantity = int.parse(split[4]);
+      matNumberInput = resultDeliveryOrderDOValidate.deliveryOrder![0].matno!;
+      lotInput = split[1];
+      palletnumberInput = split[2];
+      quantity = int.parse(split[3]);
     });
 
     //validate mat no
@@ -467,7 +467,6 @@ class _CancleState extends State<Cancle> {
         .firstWhere(
             (e) =>
                 e.matDescLabel == matDescLabelInput &&
-                e.matno == matNumberInput &&
                 e.batch == lotInput,
             orElse: () => DeliveryOrder());
 

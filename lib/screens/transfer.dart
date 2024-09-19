@@ -86,9 +86,10 @@ class _TransferState extends State<Transfer> {
   var orderQty = 0;
   var remainQty = 0;
   var pickingQty = 0;
-  String sloc = '';
+  String slocInput = '';
   int sequence = 0;
   DeliveryOrder checkResultDOValidate = DeliveryOrder();
+  late CreateLoadingTracking createLT = new CreateLoadingTracking();
 
   @override
   void initState() {
@@ -491,20 +492,17 @@ class _TransferState extends State<Transfer> {
 
     setState(() {
       matDescLabelInput = split[0];
-      matNumberInput = split[1];
-      lotInput = split[2];
-      palletnumberInput = split[3];
-      pickingQtyInput = split[4];
+      matNumberInput = resultDeliveryOrderDOValidate.deliveryOrder![0].matno!;
+      lotInput = split[1];
+      palletnumberInput = split[2];
+      pickingQtyInput = split[3];
       remainQtyInput = '';
     });
 
     //validate mat no
     var checkResultDOValidate = resultDeliveryOrderDOValidate.deliveryOrder!
         .firstWhere(
-            (e) =>
-                e.matDescLabel == matDescLabelInput &&
-                e.matno == matNumberInput &&
-                e.batch == lotInput,
+            (e) => e.matDescLabel == matDescLabelInput && e.batch == lotInput,
             orElse: () => DeliveryOrder());
 
     if (checkResultDOValidate.deliveryOrderId == null) {
@@ -523,7 +521,7 @@ class _TransferState extends State<Transfer> {
     } else {
       setState(() {
         orderQty = checkResultDOValidate.quantity!;
-        sloc = checkResultDOValidate.sloc!;
+        slocInput = checkResultDOValidate.sloc!;
         sequence = checkResultDOValidate.sequence!;
       });
     }
@@ -554,24 +552,37 @@ class _TransferState extends State<Transfer> {
       http.Response response = await http.get(url, headers: headers);
 
       if (response.statusCode == 204) {
-        //next step
-      } else if (response.statusCode == 200) {
         setState(() {
           matNumberController.text = '';
           matNumberInput = '';
+          matDescLabelInput = '';
+          lotInput = '';
+          palletnumberInput = '';
+          pickingQtyInput = '';
+          remainQtyInput = '';
         });
         await showProgressLoading(true);
-        showErrorDialog('สินค้าพาเลทนี้ถูกสแกนแล้ว');
+        showErrorDialog('ไม่พบสินค้าพาเลทนี้');
         setVisible();
         setReadOnly();
         setColor();
         setText();
         setFocus();
         return;
+      } else if (response.statusCode == 200) {
+        var data = json.decode(response.body);
+        setState(() {
+          createLT = CreateLoadingTracking.fromJson(data);
+        });
       } else {
         setState(() {
           matNumberController.text = '';
           matNumberInput = '';
+          matDescLabelInput = '';
+          lotInput = '';
+          palletnumberInput = '';
+          pickingQtyInput = '';
+          remainQtyInput = '';
         });
         await showProgressLoading(true);
         showErrorDialog('Error SelectLTLoaded');
@@ -586,6 +597,11 @@ class _TransferState extends State<Transfer> {
       setState(() {
         matNumberController.text = '';
         matNumberInput = '';
+        matDescLabelInput = '';
+        lotInput = '';
+        palletnumberInput = '';
+        pickingQtyInput = '';
+        remainQtyInput = '';
       });
       await showProgressLoading(true);
       showErrorDialog('Error occured while SelectLTLoaded');
@@ -640,8 +656,15 @@ class _TransferState extends State<Transfer> {
         setFocus();
       } else {
         setState(() {
+          qtyLoaded = 0;
+          remainQty = 0;
           matNumberController.text = '';
           matNumberInput = '';
+          matDescLabelInput = '';
+          lotInput = '';
+          palletnumberInput = '';
+          pickingQtyInput = '';
+          remainQtyInput = '';
         });
         await showProgressLoading(true);
         showErrorDialog('Error SelectLTQTYLoaded');
@@ -654,8 +677,15 @@ class _TransferState extends State<Transfer> {
       }
     } catch (e) {
       setState(() {
+        qtyLoaded = 0;
+        remainQty = 0;
         matNumberController.text = '';
         matNumberInput = '';
+        matDescLabelInput = '';
+        lotInput = '';
+        palletnumberInput = '';
+        pickingQtyInput = '';
+        remainQtyInput = '';
       });
       await showProgressLoading(true);
       showErrorDialog('Error occured while SelectLTQTYLoaded');
@@ -722,7 +752,7 @@ class _TransferState extends State<Transfer> {
 
         //next step
       } else if (response.statusCode == 204) {
-        //first scan pallet will not find
+        //first scan pallet will not find (next step)
       } else {
         await showProgressLoading(true);
         showErrorDialog('Error SelectChkLoadedFull');
@@ -753,18 +783,11 @@ class _TransferState extends State<Transfer> {
       accessToken = prefs.getString('token')!;
       username = prefs.getString('username')!;
 
-      CreateLoadingTracking createLT = new CreateLoadingTracking();
       setState(() {
-        createLT.dono = documentNumberInput;
         createLT.planDate = plandate;
         createLT.isDeleted = false;
-        createLT.matno = matNumberInput;
-        createLT.matDescLabel = matDescLabelInput;
-        createLT.batch = lotInput;
-        createLT.sloc = resultDeliveryOrderDOValidate.deliveryOrder![0].sloc!;
-        createLT.palletno = palletnumberInput;
         createLT.quantity = int.parse(pickingQtyInput);
-        createLT.createdBy = username;
+        createLT.lastUpdatedBy = username;
       });
 
       var url = Uri.parse(

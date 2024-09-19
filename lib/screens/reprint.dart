@@ -490,7 +490,36 @@ class _ReprintState extends State<Reprint> {
   Future<void> matnoValidateCheck() async {
     await showProgressLoading(false);
     var split = matNumberController.text.split('|');
-    if (split.length < 7 ) {
+
+    if (split.length == 6) {
+      setState(() {
+        matDescInput = split[0];
+        matNumberInput = '';
+        lotInput = split[1];
+        palletNoInput = split[2];
+        weightInput = split[3];
+        unitInput = split[4];
+        bagTypeInput = 'LB';
+        productionDateInput = split[5];
+        tisiInput = '';
+        labelQtyInput = '';
+        step = 3;
+      });
+    } else if (split.length == 7) {
+      setState(() {
+        matDescInput = split[0];
+        matNumberInput = '';
+        lotInput = split[1];
+        palletNoInput = split[2];
+        weightInput = split[3];
+        unitInput = split[4];
+        bagTypeInput = 'JB';
+        productionDateInput = split[5 ];
+        tisiInput = '';
+        labelQtyInput = '';
+        step++;
+      });
+    } else {
       setState(() {
         matNumberController.text = '';
       });
@@ -501,36 +530,6 @@ class _ReprintState extends State<Reprint> {
       setColor();
       setText();
       setFocus();
-    }
-
-    if (split.length == 7) {
-      setState(() {
-        matDescInput = split[0];
-        matNumberInput = split[1];
-        lotInput = split[2];
-        palletNoInput = split[3];
-        weightInput = split[4];
-        unitInput = split[5];
-        bagTypeInput = 'LB';
-        productionDateInput = split[6];
-        tisiInput = '';
-        labelQtyInput = '';
-        step = 3;
-      });
-    } else if (split.length > 7 ) {
-      setState(() {
-        matDescInput = split[0];
-        matNumberInput = split[1];
-        lotInput = split[2];
-        palletNoInput = split[3];
-        weightInput = split[4];
-        unitInput = split[5];
-        bagTypeInput = 'JB';
-        productionDateInput = split[6];
-        tisiInput = '';
-        labelQtyInput = '';
-        step++;
-      });
     }
 
     await showProgressLoading(true);

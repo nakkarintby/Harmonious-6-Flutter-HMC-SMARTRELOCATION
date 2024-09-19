@@ -10,6 +10,7 @@ class CreateLoadingTracking {
   String? palletno;
   int? quantity;
   String? createdBy;
+  String? lastUpdatedBy;
 
   CreateLoadingTracking(
       {this.loadTrackingId,
@@ -22,7 +23,8 @@ class CreateLoadingTracking {
       this.sloc,
       this.palletno,
       this.quantity,
-      this.createdBy});
+      this.createdBy,
+      this.lastUpdatedBy});
 
   CreateLoadingTracking.fromJson(Map<String, dynamic> json) {
     loadTrackingId = json['loadTrackingId'];
@@ -36,6 +38,7 @@ class CreateLoadingTracking {
     palletno = json['palletno'];
     quantity = json['quantity'];
     createdBy = json['createdBy'];
+    lastUpdatedBy = json['lastUpdatedBy'];
   }
 
   Map<String, dynamic> toJson() {
@@ -51,6 +54,7 @@ class CreateLoadingTracking {
     data['palletno'] = this.palletno;
     data['quantity'] = this.quantity;
     data['createdBy'] = this.createdBy;
+    data['lastUpdatedBy'] = this.lastUpdatedBy;
     return data;
   }
 }

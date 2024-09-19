@@ -86,7 +86,7 @@ class _GoodIssueState extends State<GoodIssue> {
   var orderQty = 0;
   var remainQty = 0;
   var pickingQty = 0;
-  String sloc = '';
+  String slocInput = '';
   int sequence = 0;
   DeliveryOrder checkResultDOValidate = DeliveryOrder();
 
@@ -496,20 +496,17 @@ class _GoodIssueState extends State<GoodIssue> {
 
     setState(() {
       matDescLabelInput = split[0];
-      matNumberInput = split[1];
-      lotInput = split[2];
-      palletnumberInput = split[3];
-      pickingQtyInput = split[4];
+      matNumberInput = resultDeliveryOrderDOValidate.deliveryOrder![0].matno!;
+      lotInput = split[1];
+      palletnumberInput = split[2];
+      pickingQtyInput = split[3];
       remainQtyInput = '';
     });
 
     //validate mat no
     var checkResultDOValidate = resultDeliveryOrderDOValidate.deliveryOrder!
         .firstWhere(
-            (e) =>
-                e.matDescLabel == matDescLabelInput &&
-                e.matno == matNumberInput &&
-                e.batch == lotInput,
+            (e) => e.matDescLabel == matDescLabelInput && e.batch == lotInput,
             orElse: () => DeliveryOrder());
 
     if (checkResultDOValidate.deliveryOrderId == null) {
@@ -528,7 +525,7 @@ class _GoodIssueState extends State<GoodIssue> {
     } else {
       setState(() {
         orderQty = checkResultDOValidate.quantity!;
-        sloc = checkResultDOValidate.sloc!;
+        slocInput = checkResultDOValidate.sloc!;
         sequence = checkResultDOValidate.sequence!;
       });
     }
@@ -564,6 +561,11 @@ class _GoodIssueState extends State<GoodIssue> {
         setState(() {
           matNumberController.text = '';
           matNumberInput = '';
+          matDescLabelInput = '';
+          lotInput = '';
+          palletnumberInput = '';
+          pickingQtyInput = '';
+          remainQtyInput = '';
         });
         await showProgressLoading(true);
         showErrorDialog('สินค้าพาเลทนี้ถูกสแกนแล้ว');
@@ -577,6 +579,11 @@ class _GoodIssueState extends State<GoodIssue> {
         setState(() {
           matNumberController.text = '';
           matNumberInput = '';
+          matDescLabelInput = '';
+          lotInput = '';
+          palletnumberInput = '';
+          pickingQtyInput = '';
+          remainQtyInput = '';
         });
         await showProgressLoading(true);
         showErrorDialog('Error SelectLTLoaded');
@@ -591,6 +598,11 @@ class _GoodIssueState extends State<GoodIssue> {
       setState(() {
         matNumberController.text = '';
         matNumberInput = '';
+        matDescLabelInput = '';
+        lotInput = '';
+        palletnumberInput = '';
+        pickingQtyInput = '';
+        remainQtyInput = '';
       });
       await showProgressLoading(true);
       showErrorDialog('Error occured while SelectLTLoaded');
@@ -645,8 +657,15 @@ class _GoodIssueState extends State<GoodIssue> {
         setFocus();
       } else {
         setState(() {
+          qtyLoaded = 0;
+          remainQty = 0;
           matNumberController.text = '';
           matNumberInput = '';
+          matDescLabelInput = '';
+          lotInput = '';
+          palletnumberInput = '';
+          pickingQtyInput = '';
+          remainQtyInput = '';
         });
         await showProgressLoading(true);
         showErrorDialog('Error SelectLTQTYLoaded');
@@ -659,8 +678,15 @@ class _GoodIssueState extends State<GoodIssue> {
       }
     } catch (e) {
       setState(() {
+        qtyLoaded = 0;
+        remainQty = 0;
         matNumberController.text = '';
         matNumberInput = '';
+        matDescLabelInput = '';
+        lotInput = '';
+        palletnumberInput = '';
+        pickingQtyInput = '';
+        remainQtyInput = '';
       });
       await showProgressLoading(true);
       showErrorDialog('Error occured while SelectLTQTYLoaded');
@@ -727,7 +753,7 @@ class _GoodIssueState extends State<GoodIssue> {
 
         //next step
       } else if (response.statusCode == 204) {
-        //first scan pallet will not find
+        //first scan pallet will not find (next step)
       } else {
         await showProgressLoading(true);
         showErrorDialog('Error SelectChkLoadedFull');
@@ -766,10 +792,11 @@ class _GoodIssueState extends State<GoodIssue> {
         createLT.matno = matNumberInput;
         createLT.matDescLabel = matDescLabelInput;
         createLT.batch = lotInput;
-        createLT.sloc = resultDeliveryOrderDOValidate.deliveryOrder![0].sloc!;
+        createLT.sloc = slocInput;
         createLT.palletno = palletnumberInput;
         createLT.quantity = int.parse(pickingQtyInput);
         createLT.createdBy = username;
+        createLT.lastUpdatedBy = null;
       });
 
       var url = Uri.parse(
