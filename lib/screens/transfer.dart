@@ -574,6 +574,44 @@ class _TransferState extends State<Transfer> {
         setState(() {
           createLT = CreateLoadingTracking.fromJson(data);
         });
+
+        if (createLT.lastUpdatedBy != null) {
+          setState(() {
+            matNumberController.text = '';
+            matNumberInput = '';
+            matDescLabelInput = '';
+            lotInput = '';
+            palletnumberInput = '';
+            pickingQtyInput = '';
+            remainQtyInput = '';
+          });
+          await showProgressLoading(true);
+          showErrorDialog('สินค้าพาเลทนี้ถูกสแกนแล้ว');
+          setVisible();
+          setReadOnly();
+          setColor();
+          setText();
+          setFocus();
+          return;
+        } else if (createLT.quantity != int.parse(pickingQtyInput)) {
+          setState(() {
+            matNumberController.text = '';
+            matNumberInput = '';
+            matDescLabelInput = '';
+            lotInput = '';
+            palletnumberInput = '';
+            pickingQtyInput = '';
+            remainQtyInput = '';
+          });
+          await showProgressLoading(true);
+          showErrorDialog('น้ำหนักไม่ถูกต้อง');
+          setVisible();
+          setReadOnly();
+          setColor();
+          setText();
+          setFocus();
+          return;
+        }
       } else {
         setState(() {
           matNumberController.text = '';
