@@ -395,6 +395,22 @@ class _GoodIssueState extends State<GoodIssue> {
 
     var split = documentNumberController.text.split('|');
 
+    if (split.length != 2) {
+      setState(() {
+        documentNumberController.text = '';
+        documentNumberInput = '';
+        plandate = '';
+      });
+      await showProgressLoading(true);
+      showErrorDialog('Document Number Format Invalid');
+      setVisible();
+      setReadOnly();
+      setColor();
+      setText();
+      setFocus();
+      return;
+    }
+
     setState(() {
       documentNumberInput = split[0];
       plandate = split[1];
@@ -494,9 +510,23 @@ class _GoodIssueState extends State<GoodIssue> {
 
     var split = matNumberController.text.split('|');
 
+       if (split.length != 6 && split.length != 7) {
+      await showProgressLoading(true);
+      setState(() {
+        matNumberController.text = '';
+        matNumberInput = '';
+      });
+      showErrorDialog('MatNumber Format Invalid');
+      setVisible();
+      setReadOnly();
+      setColor();
+      setText();
+      setFocus();
+      return;
+    }
+
     setState(() {
       matDescLabelInput = split[0];
-      matNumberInput = resultDeliveryOrderDOValidate.deliveryOrder![0].matno!;
       lotInput = split[1];
       palletnumberInput = split[2];
       pickingQtyInput = split[3];
@@ -524,6 +554,7 @@ class _GoodIssueState extends State<GoodIssue> {
       return;
     } else {
       setState(() {
+        matNumberInput = checkResultDOValidate.matno!;
         orderQty = checkResultDOValidate.quantity!;
         slocInput = checkResultDOValidate.sloc!;
         sequence = checkResultDOValidate.sequence!;
@@ -540,11 +571,11 @@ class _GoodIssueState extends State<GoodIssue> {
 
       var url = Uri.parse('http://' +
           configs +
-          '/api/LoadTracking/SelectLTLoaded/' +
+          '/api/LoadTracking/SelectLTLoaded?matno=' +
           matNumberInput +
-          '/' +
+          '&batch=' +
           lotInput +
-          '/' +
+          '&palletno=' +
           palletnumberInput);
 
       var headers = {
@@ -624,13 +655,13 @@ class _GoodIssueState extends State<GoodIssue> {
 
       var url = Uri.parse('http://' +
           configs +
-          '/api/LoadTracking/SelectLTQTYLoaded/' +
+          '/api/LoadTracking/SelectLTQTYLoaded?dono=' +
           documentNumberInput +
-          '/' +
+          '&plandate=' +
           plandate +
-          '/' +
+          '&matno=' +
           matNumberInput +
-          '/' +
+          '&batch=' +
           lotInput);
 
       var headers = {
@@ -715,9 +746,9 @@ class _GoodIssueState extends State<GoodIssue> {
 
       var url = Uri.parse('http://' +
           configs +
-          '/api/LoadTracking/SelectChkLoadedFull/' +
+          '/api/LoadTracking/SelectChkLoadedFull?dono=' +
           documentNumberInput +
-          '/' +
+          '&plandate=' +
           plandate);
 
       var headers = {
@@ -784,10 +815,14 @@ class _GoodIssueState extends State<GoodIssue> {
       accessToken = prefs.getString('token')!;
       username = prefs.getString('username')!;
 
+      var splitCreate = plandate.split('/');
+      var plateDatetmp =
+          splitCreate[2] + '-' + splitCreate[1] + '-' + splitCreate[0];
+
       CreateLoadingTracking createLT = new CreateLoadingTracking();
       setState(() {
         createLT.dono = documentNumberInput;
-        createLT.planDate = plandate;
+        createLT.planDate = plateDatetmp;
         createLT.isDeleted = false;
         createLT.matno = matNumberInput;
         createLT.matDescLabel = matDescLabelInput;
@@ -820,7 +855,7 @@ class _GoodIssueState extends State<GoodIssue> {
 
       if (response.statusCode == 200) {
         setState(() {
-          step = 1;
+          step = 2;
         });
         await showProgressLoading(true);
         showSuccessDialog('Post Successful!');

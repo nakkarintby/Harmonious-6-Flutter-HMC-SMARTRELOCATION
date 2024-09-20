@@ -126,11 +126,11 @@ class _DoDetailGIState extends State<DoDetailGI> {
     try {
       var url = Uri.parse('http://' +
           configs +
-          '/api/DeliveryOrder/SelectDODetail/' +
+          '/api/DeliveryOrder/SelectDODetail?dono=' +
           dono +
-          '/' +
+          '&plandate=' +
           plandate +
-          '/' +
+          '&seq=' +
           sequence.toString());
 
       var headers = {

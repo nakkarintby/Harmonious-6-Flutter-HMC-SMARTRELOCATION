@@ -131,13 +131,13 @@ class _LoadHistoryGIState extends State<LoadHistoryGI> {
     try {
       var url = Uri.parse('http://' +
           configs +
-          '/api/LoadTracking/SelectLTLoadedHistList/' +
+          '/api/LoadTracking/SelectLTLoadedHistList?dono=' +
           dono +
-          '/' +
+          '&plandate=' +
           plandate +
-          '/' +
+          '&matno=' +
           matno +
-          '/' +
+          '&batch=' +
           batch);
 
       var headers = {

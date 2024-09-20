@@ -355,6 +355,22 @@ class _CancleState extends State<Cancle> {
 
     var split = documentNumberController.text.split('|');
 
+    if (split.length != 2) {
+      setState(() {
+        documentNumberController.text = '';
+        documentNumberInput = '';
+        plandate = '';
+      });
+      await showProgressLoading(true);
+      showErrorDialog('Document Number Format Invalid');
+      setVisible();
+      setReadOnly();
+      setColor();
+      setText();
+      setFocus();
+      return;
+    }
+
     setState(() {
       documentNumberInput = split[0];
       plandate = split[1];
@@ -454,6 +470,21 @@ class _CancleState extends State<Cancle> {
 
     var split = matNumberController.text.split('|');
 
+    if (split.length != 6 && split.length != 7) {
+      await showProgressLoading(true);
+      setState(() {
+        matNumberController.text = '';
+        matNumberInput = '';
+      });
+      showErrorDialog('MatNumber Format Invalid');
+      setVisible();
+      setReadOnly();
+      setColor();
+      setText();
+      setFocus();
+      return;
+    }
+
     setState(() {
       matDescLabelInput = split[0];
       matNumberInput = resultDeliveryOrderDOValidate.deliveryOrder![0].matno!;
@@ -465,9 +496,7 @@ class _CancleState extends State<Cancle> {
     //validate mat no
     var checkResultDOValidate = resultDeliveryOrderDOValidate.deliveryOrder!
         .firstWhere(
-            (e) =>
-                e.matDescLabel == matDescLabelInput &&
-                e.batch == lotInput,
+            (e) => e.matDescLabel == matDescLabelInput && e.batch == lotInput,
             orElse: () => DeliveryOrder());
 
     if (checkResultDOValidate.deliveryOrderId == null) {
@@ -495,11 +524,11 @@ class _CancleState extends State<Cancle> {
 
       var url = Uri.parse('http://' +
           configs +
-          '/api/LoadTracking/SelectLTLoaded/' +
+          '/api/LoadTracking/SelectLTLoaded?matno=' +
           matNumberInput +
-          '/' +
+          '&batch=' +
           lotInput +
-          '/' +
+          '&palletno=' +
           palletnumberInput);
 
       var headers = {
@@ -624,7 +653,7 @@ class _CancleState extends State<Cancle> {
 
       if (response.statusCode == 200) {
         setState(() {
-          step = 1;
+          step = 2;
         });
         await showProgressLoading(true);
         showSuccessDialog('Post Successful!');

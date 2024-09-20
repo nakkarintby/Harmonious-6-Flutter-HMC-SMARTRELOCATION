@@ -391,11 +391,8 @@ class _TransferState extends State<Transfer> {
   Future<void> documentNumberCheck() async {
     await showProgressLoading(false);
 
-    var split = documentNumberController.text.split('|');
-
     setState(() {
-      documentNumberInput = split[0];
-      plandate = split[1];
+      documentNumberInput = documentNumberController.text;
     });
 
     //api/DeliveryOrder/DOValidate
@@ -446,6 +443,7 @@ class _TransferState extends State<Transfer> {
 
         setState(() {
           step++;
+          plandate = resultDeliveryOrderDOValidate.deliveryOrder![0].planDate!;
         });
         await showProgressLoading(true);
         setVisible();
@@ -490,9 +488,23 @@ class _TransferState extends State<Transfer> {
 
     var split = matNumberController.text.split('|');
 
+    if (split.length != 6 && split.length != 7) {
+      await showProgressLoading(true);
+      setState(() {
+        matNumberController.text = '';
+        matNumberInput = '';
+      });
+      showErrorDialog('MatNumber Format Invalid');
+      setVisible();
+      setReadOnly();
+      setColor();
+      setText();
+      setFocus();
+      return;
+    }
+
     setState(() {
       matDescLabelInput = split[0];
-      matNumberInput = resultDeliveryOrderDOValidate.deliveryOrder![0].matno!;
       lotInput = split[1];
       palletnumberInput = split[2];
       pickingQtyInput = split[3];
@@ -520,6 +532,7 @@ class _TransferState extends State<Transfer> {
       return;
     } else {
       setState(() {
+        matNumberInput = checkResultDOValidate.matno!;
         orderQty = checkResultDOValidate.quantity!;
         slocInput = checkResultDOValidate.sloc!;
         sequence = checkResultDOValidate.sequence!;
@@ -536,11 +549,11 @@ class _TransferState extends State<Transfer> {
 
       var url = Uri.parse('http://' +
           configs +
-          '/api/LoadTracking/SelectLTLoaded/' +
+          '/api/LoadTracking/SelectLTLoaded?matno=' +
           matNumberInput +
-          '/' +
+          '&batch=' +
           lotInput +
-          '/' +
+          '&palletno=' +
           palletnumberInput);
 
       var headers = {
@@ -552,23 +565,7 @@ class _TransferState extends State<Transfer> {
       http.Response response = await http.get(url, headers: headers);
 
       if (response.statusCode == 204) {
-        setState(() {
-          matNumberController.text = '';
-          matNumberInput = '';
-          matDescLabelInput = '';
-          lotInput = '';
-          palletnumberInput = '';
-          pickingQtyInput = '';
-          remainQtyInput = '';
-        });
-        await showProgressLoading(true);
-        showErrorDialog('ไม่พบสินค้าพาเลทนี้');
-        setVisible();
-        setReadOnly();
-        setColor();
-        setText();
-        setFocus();
-        return;
+        //next step
       } else if (response.statusCode == 200) {
         var data = json.decode(response.body);
         setState(() {
@@ -650,6 +647,13 @@ class _TransferState extends State<Transfer> {
       setFocus();
       return;
     }
+    var splittmp1 = plandate.split('T');
+    var splittmp2 = splittmp1[0].split('-');
+
+    var plandatetmp = '';
+    setState(() {
+      plandatetmp = splittmp2[2] + '/' + splittmp2[1] + '/' + splittmp2[0];
+    });
 
     //call api LoadTracking/SelectLTQTYLoaded
     try {
@@ -661,13 +665,13 @@ class _TransferState extends State<Transfer> {
 
       var url = Uri.parse('http://' +
           configs +
-          '/api/LoadTracking/SelectLTQTYLoaded/' +
+          '/api/LoadTracking/SelectLTQTYLoaded?dono=' +
           documentNumberInput +
-          '/' +
-          plandate +
-          '/' +
+          '&plandate=' +
+          plandatetmp +
+          '&matno=' +
           matNumberInput +
-          '/' +
+          '&batch=' +
           lotInput);
 
       var headers = {
@@ -742,6 +746,14 @@ class _TransferState extends State<Transfer> {
     });
     await showProgressLoading(false);
 
+    var splittmp1 = plandate.split('T');
+    var splittmp2 = splittmp1[0].split('-');
+
+    var plandatetmp = '';
+    setState(() {
+      plandatetmp = splittmp2[2] + '/' + splittmp2[1] + '/' + splittmp2[0];
+    });
+
     //call api LoadTracking/SelectChkLoadedFull
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -752,10 +764,10 @@ class _TransferState extends State<Transfer> {
 
       var url = Uri.parse('http://' +
           configs +
-          '/api/LoadTracking/SelectChkLoadedFull/' +
+          '/api/LoadTracking/SelectChkLoadedFull?dono=' +
           documentNumberInput +
-          '/' +
-          plandate);
+          '&plandate=' +
+          plandatetmp);
 
       var headers = {
         "Content-Type": "application/json",
@@ -821,10 +833,18 @@ class _TransferState extends State<Transfer> {
       accessToken = prefs.getString('token')!;
       username = prefs.getString('username')!;
 
+      CreateLoadingTracking createLT = new CreateLoadingTracking();
       setState(() {
+        createLT.dono = documentNumberInput;
         createLT.planDate = plandate;
         createLT.isDeleted = false;
+        createLT.matno = matNumberInput;
+        createLT.matDescLabel = matDescLabelInput;
+        createLT.batch = lotInput;
+        createLT.sloc = slocInput;
+        createLT.palletno = palletnumberInput;
         createLT.quantity = int.parse(pickingQtyInput);
+        createLT.createdBy = username;
         createLT.lastUpdatedBy = username;
       });
 
@@ -849,7 +869,7 @@ class _TransferState extends State<Transfer> {
 
       if (response.statusCode == 200) {
         setState(() {
-          step = 1;
+          step = 2;
         });
         await showProgressLoading(true);
         showSuccessDialog('Post Successful!');

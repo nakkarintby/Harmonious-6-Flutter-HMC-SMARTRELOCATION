@@ -124,11 +124,7 @@ class _AllHistoryGIState extends State<AllHistoryGI> {
     try {
       var url = Uri.parse('http://' +
           configs +
-          '/api/LoadTracking/SelectLTLoadedHistByDONoPlandateList/' +
-          dono +
-          '/' +
-          plandate +
-          '/0');
+          '/api/LoadTracking/SelectLTLoadedHistByDONoPlandateList?dono=' + dono + '&plandate=' + plandate +'&IsDeleted=0');
 
       var headers = {
         "Content-Type": "application/json",
