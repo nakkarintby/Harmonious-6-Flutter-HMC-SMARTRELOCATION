@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
+import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:progress_dialog/progress_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -397,9 +399,13 @@ class _LoginState extends State<Login> {
       //   user.userName = 'mobile1';
       //   user.password = 'Qo94v0JpPaL59LS6U3xfEB4nVgc=';
       // });
+
+      //encoding password to string base64(utf16-SHA1)
+      String encoded = encodePasswordToBase64(passwordController.text);
+
       setState(() {
         user.userName = usernameController.text;
-        user.password = passwordController.text;
+        user.password = encoded;
       });
       var jsonBody = jsonEncode(user);
       final encoding = Encoding.getByName('utf-8');
@@ -449,6 +455,23 @@ class _LoginState extends State<Login> {
       await showProgressLoading(true);
       showErrorDialog('Error occured while checkLogin');
     }
+  }
+
+  List<int> utf16Encode(String str) {
+    return str.codeUnits
+        .expand((unit) => [unit & 0xFF, (unit >> 8) & 0xFF])
+        .toList();
+  }
+
+  String encodePasswordToBase64(String password) {
+    // Convert the password to bytes using UTF-16 encoding
+    List<int> bytes = utf16Encode(password);
+
+    // Compute the SHA1 hash
+    var digest = sha1.convert(bytes);
+
+    // Convert the hash to a Base64 string
+    return base64Encode(digest.bytes);
   }
 
   @override
